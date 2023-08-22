@@ -1,0 +1,43 @@
+syntax = "proto3";
+package github.com.yannismate.rocketrankbot.trackerggscraper;
+option go_package = "rpc/trackerggscraper";
+
+service TrackerGgScraper {
+  rpc PlayerCurrentRanks(PlayerCurrentRanksReq) returns (PlayerCurrentRanksRes);
+}
+
+enum PlayerPlatform {
+  EPIC = 0;
+  STEAM = 1;
+  PSN = 2;
+  XBL = 3;
+}
+
+enum RankPlaylist {
+    UNRANKED = 0;
+    RANKED_1V1 = 1;
+    RANKED_2V2 = 2;
+    RANKED_3V3 = 3;
+    HOOPS = 4;
+    RUMBLE = 5;
+    DROPSHOT = 6;
+    SNOWDAY = 7;
+    TOURNAMENTS = 8;
+}
+
+message PlayerCurrentRanksReq {
+  PlayerPlatform platform = 1;
+  string identifier = 2;
+}
+
+message PlayerCurrentRanksRes {
+  string displayName = 1;
+  repeated PlayerRank ranks = 2;
+}
+
+message PlayerRank {
+  RankPlaylist playlist = 1;
+  int32 mmr = 2;
+  int32 rank = 3;
+  int32 division = 4;
+}
