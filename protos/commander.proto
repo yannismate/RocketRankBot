@@ -1,0 +1,20 @@
+syntax = "proto3";
+package github.com.yannismate.rocketrankbot.commander;
+option go_package = "rpc/commander";
+
+service Commander {
+  rpc ExecutePossibleCommand(ExecutePossibleCommandReq) returns (ExecutePossibleCommandRes) {}
+}
+
+message ExecutePossibleCommandReq {
+    string twitchChannelID = 1;
+    string twitchChannelLogin = 2;
+    string twitchMessageID = 3;
+    string twitchSenderUserID = 4;
+    string twitchSenderDisplayName = 5;
+    bool isModerator = 6;
+    bool isBroadcaster = 7;
+    string command = 8;
+}
+
+message ExecutePossibleCommandRes {}

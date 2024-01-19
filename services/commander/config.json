@@ -1,0 +1,18 @@
+{
+  "appPort": 8080,
+  "adminPort": 8081,
+  "db": {
+    "main": "maindb.cluster.local",
+    "cache": "cache.cluster.local"
+  },
+  "services": {
+    "trackerGgScraper": "trackerggscraper.cluster.local",
+    "twitchConnector": "twitchconnector.cluster.local"
+  },
+  "ttl": {
+    "commands": 600,
+    "rank": 300
+  },
+  "commandTimeoutSeconds": "8",
+  "botChannelName": "rocketrankbot"
+}
