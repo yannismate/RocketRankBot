@@ -8,29 +8,29 @@ import (
 	"RocketRankBot/services/commander/rpc/commander"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"RocketRankBot/services/commander/rpc/twitchconnector"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 )
 
 func main() {
-	// TODO: configure logging and metrics
+	// TODO: Metrics
 
 	cfg, err := config.ReadConfig("config.json")
 	if err != nil {
-		zap.L().Fatal("Config could not be read", zap.Error(err))
+		log.Fatal().Err(err).Msg("Config could not be read")
 		return
 	}
 
 	mainDB, err := db.NewMainDB(cfg)
 	if err != nil {
-		zap.L().Fatal("Could not connect to main database", zap.Error(err))
+		log.Fatal().Err(err).Msg("Could not connect to main database")
 		return
 	}
 
 	cacheDB, err := db.NewCache(cfg)
 	if err != nil {
-		zap.L().Fatal("Could not connect to cache database", zap.Error(err))
+		log.Fatal().Err(err).Msg("Could not connect to cache database")
 		return
 	}
 
@@ -40,11 +40,11 @@ func main() {
 	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchConnector, trackerGgScraper)
 
 	serverInstance := server.NewServer(botInstance)
-	twirpHandler := commander.NewCommanderServer(&serverInstance)
+	twirpHandler := server.WithLogging(commander.NewCommanderServer(&serverInstance))
 
 	err = http.ListenAndServe(":"+strconv.Itoa(cfg.AppPort), twirpHandler)
 	if err != nil {
-		zap.L().Fatal("HTTP Listener error", zap.Error(err))
+		log.Fatal().Err(err).Msg("HTTP Listener error")
 		return
 	}
 }

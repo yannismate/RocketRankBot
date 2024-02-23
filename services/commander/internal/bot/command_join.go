@@ -4,6 +4,7 @@ import (
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/rpc/commander"
 	"context"
+	"github.com/rs/zerolog/log"
 	"strings"
 )
 
@@ -28,6 +29,7 @@ func (b *bot) executeCommandJoin(ctx context.Context, req *commander.ExecutePoss
 		}
 		err = b.mainDB.UpdateUserLogin(ctx, channelID, channelLogin)
 		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("Could not update user login")
 			b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
 			return
 		}
@@ -44,6 +46,7 @@ func (b *bot) executeCommandJoin(ctx context.Context, req *commander.ExecutePoss
 
 	err = b.mainDB.AddUser(ctx, &bu)
 	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("Could not add user to db")
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
 		return
 	}

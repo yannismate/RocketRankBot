@@ -4,7 +4,7 @@ import (
 	"RocketRankBot/services/commander/internal/config"
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 )
 
 type mainDB struct {
@@ -16,6 +16,7 @@ type MainDB interface {
 	FindUser(ctx context.Context, twitchUserID string) (*BotUser, bool, error)
 	AddUser(ctx context.Context, user *BotUser) error
 	AddCommand(ctx context.Context, cmd *BotCommand) error
+	DeleteCommand(ctx context.Context, channelId string, commandName string) error
 	UpdateUserLogin(ctx context.Context, twitchUserID string, twitchLogin string) error
 	DeleteUserData(ctx context.Context, twitchUserID string) error
 }
@@ -23,7 +24,7 @@ type MainDB interface {
 func NewMainDB(cfg *config.CommanderConfig) (MainDB, error) {
 	dbPool, err := pgxpool.New(context.Background(), cfg.DB.Main)
 	if err != nil {
-		zap.L().Error("Error creating Postgres pool", zap.Error(err))
+		log.Err(err).Msg("Error creating postgres pool")
 		return nil, err
 	}
 

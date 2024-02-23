@@ -10,8 +10,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
-	"go.uber.org/zap"
 	"strings"
 	"time"
 )
@@ -47,7 +47,8 @@ func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, t
 		"join":   b.executeCommandJoin,
 		"leave":  b.executeCommandLeave,
 		"addcom": b.executeCommandAddcom,
-		// TODO: delete and edit commands, twitchconnector service
+		"delcom": b.executeCommandDelcom,
+		// TODO: edit commands, twitchconnector service
 	}
 
 	return &b
@@ -74,13 +75,14 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 		if strings.ToLower(req.TwitchChannelLogin) != strings.ToLower(b.botChannelName) && !req.IsModerator && !req.IsBroadcaster {
 			return
 		}
+		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing builtin command")
 		cmdFunc(ctx, req)
 		return
 	}
 
 	cachedCommand, foundCache, err := b.cacheDB.FindCachedCommand(ctx, req.TwitchChannelID, baseCommand)
 	if err != nil {
-		zap.L().Error("Error looking up cached command", zap.Error(err))
+		log.Ctx(ctx).Error().Err(err).Msg("Error looking up cached command")
 	}
 
 	var replyMessage string
@@ -91,6 +93,7 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 		if time.Now().Before(cachedCommand.NextExecutionAllowedTime) {
 			return
 		}
+		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing cached rank command")
 		replyMessage = b.getRankMessage(ctx, cachedCommand.RLPlatform, cachedCommand.RLUsername, cachedCommand.MessageFormat)
 		replyType = cachedCommand.TwitchResponseType
 		updatedCachedCmd = *cachedCommand
@@ -99,12 +102,14 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 		command, foundMain, err := b.mainDB.FindCommand(ctx, req.TwitchChannelID, baseCommand)
 		if err != nil {
 			replyMessage = messageInternalError
-			zap.L().Error("Error looking up command in DB", zap.Error(err))
+			log.Ctx(ctx).Error().Err(err).Msg("Error looking up command in DB")
 			return
 		}
 		if !foundMain {
 			return
 		}
+
+		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing rank command")
 
 		replyType = command.TwitchResponseType
 		replyMessage = b.getRankMessage(ctx, command.RLPlatform, command.RLUsername, command.MessageFormat)
@@ -120,7 +125,7 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 
 	err = b.cacheDB.SetCachedCommand(ctx, req.TwitchChannelID, baseCommand, &updatedCachedCmd, b.cacheTTLCommand)
 	if err != nil {
-		zap.L().Error("Error updating command cache", zap.Error(err))
+		log.Ctx(ctx).Error().Err(err).Msg("Error updating command cache")
 	}
 
 	if replyType == db.TwitchResponseTypeMention {
@@ -144,7 +149,7 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 
 	rankRes, wasCached, err := b.cacheDB.FindCachedRank(ctx, platform, identifier)
 	if err != nil {
-		zap.L().Error("Error looking up cached rank", zap.Error(err))
+		log.Ctx(ctx).Error().Err(err).Msg("Error looking up cached rank")
 	}
 
 	if !wasCached {
@@ -157,7 +162,7 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 			var twirpErr twirp.Error
 			if errors.As(err, &twirpErr) {
 				if twirpErr.Code() == twirp.ResourceExhausted {
-					zap.L().Info("Rank service is rate limited", zap.Error(err))
+					log.Ctx(ctx).Info().Err(err).Msg("Rank service is rate limited")
 					return messageRateLimited
 				} else if twirpErr.Code() == twirp.NotFound {
 					notFoundStruct := struct {
@@ -170,19 +175,19 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 					var notFoundMessageBuf bytes.Buffer
 					err = templateMessageNotFound.Execute(&notFoundMessageBuf, notFoundStruct)
 					if err != nil {
-						zap.L().Error("Error executing not found template", zap.Error(err))
+						log.Ctx(ctx).Error().Err(err).Msg("Error executing not found template")
 						return messageInternalError
 					}
 					return notFoundMessageBuf.String()
 				}
 			}
-			zap.L().Error("Error getting ranks from scraping service", zap.Error(err))
+			log.Ctx(ctx).Error().Err(err).Msg("Error getting ranks from scraping service")
 			return messageInternalError
 		}
 
 		err = b.cacheDB.SetCachedRank(ctx, platform, identifier, rankRes, b.cacheTTLRank)
 		if err != nil {
-			zap.L().Error("Error updating rank cache", zap.Error(err))
+			log.Ctx(ctx).Error().Err(err).Msg("Error updating rank cache")
 		}
 	}
 
@@ -197,7 +202,7 @@ func (b *bot) sendTwitchMessage(ctx context.Context, channelName string, message
 		}
 		_, err := b.twitchConnector.SendMessage(ctx, &sendMsgReq)
 		if err != nil {
-			zap.L().Error("Error sending message", zap.Error(err))
+			log.Ctx(ctx).Error().Err(err).Msg("Error sending message")
 			return
 		}
 	} else {
@@ -208,7 +213,7 @@ func (b *bot) sendTwitchMessage(ctx context.Context, channelName string, message
 		}
 		_, err := b.twitchConnector.SendResponseMessage(ctx, &sendMsgReq)
 		if err != nil {
-			zap.L().Error("Error sending reply message", zap.Error(err))
+			log.Ctx(ctx).Error().Err(err).Msg("Error sending reply message")
 			return
 		}
 	}
@@ -220,7 +225,7 @@ func (b *bot) joinTwitchChannel(ctx context.Context, channelLogin string) {
 	}
 	_, err := b.twitchConnector.JoinChannel(ctx, &joinChannelReq)
 	if err != nil {
-		zap.L().Error("Error sending join channel message", zap.Error(err))
+		log.Ctx(ctx).Error().Err(err).Msg("Error sending join channel message")
 		return
 	}
 }
@@ -231,7 +236,7 @@ func (b *bot) leaveTwitchChannel(ctx context.Context, channelLogin string) {
 	}
 	_, err := b.twitchConnector.LeaveChannel(ctx, &leaveChannelReq)
 	if err != nil {
-		zap.L().Error("Error sending leave channel message", zap.Error(err))
+		log.Ctx(ctx).Error().Err(err).Msg("Error sending leave channel message")
 		return
 	}
 }

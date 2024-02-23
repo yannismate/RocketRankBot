@@ -22,6 +22,7 @@ type CacheDB interface {
 	FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*trackerggscraper.PlayerCurrentRanksRes, bool, error)
 	SetCachedCommand(ctx context.Context, channelID string, commandName string, cachedCmd *CachedCommand, ttl time.Duration) error
 	SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *trackerggscraper.PlayerCurrentRanksRes, ttl time.Duration) error
+	InvalidateCachedCommand(ctx context.Context, channelID string, commandName string) error
 }
 
 func NewCache(cfg *config.CommanderConfig) (CacheDB, error) {

@@ -4,6 +4,7 @@ import (
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/rpc/commander"
 	"context"
+	"github.com/rs/zerolog/log"
 	"strings"
 )
 
@@ -26,13 +27,14 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 	}
 
 	args := strings.Split(req.Command, " ")
-	if len(args) != 4 {
+	if len(args) < 4 {
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageAddcomUsage, &req.TwitchMessageID)
 		return
 	}
 
 	_, found, err := b.mainDB.FindUser(ctx, channelID)
 	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for user")
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
 		return
 	}
@@ -50,6 +52,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 
 	_, found, err = b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for command")
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
 		return
 	}
@@ -78,6 +81,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 
 	err = b.mainDB.AddCommand(ctx, &cmd)
 	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("Could not add command to db")
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
 		return
 	}

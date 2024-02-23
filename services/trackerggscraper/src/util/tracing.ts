@@ -21,7 +21,7 @@ export const tracingRequestReceived = async (ctx: TwirpContext<Context>, req: Se
     ctx.timer = metricResponseTime.startTimer();
     ctx.tracing = {
         traceId: req.headers["trace-id"] as string | undefined || Guid.newGuid().toString(),
-        parentSpanId: req.headers["parent-id"] as string | undefined || "",
+        parentSpanId: req.headers["span-id"] as string | undefined || "",
         spanId: Guid.newGuid().toString()
     };
     logger.trace({
