@@ -1,0 +1,13 @@
+{
+  "appPort": 8080,
+  "adminPort": 8081,
+  "services": {
+    "commander": "commander.cluster.local"
+  },
+  "twitch": {
+    "login": "rocketrankbot",
+    "clientId": "xxx",
+    "clientSecret": "xxx"
+  },
+  "commandPrefix": "!"
+}

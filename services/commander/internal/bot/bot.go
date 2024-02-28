@@ -18,6 +18,7 @@ import (
 
 type Bot interface {
 	ExecutePossibleCommand(ctx context.Context, req *commander.ExecutePossibleCommandReq)
+	GetAllChannels(ctx context.Context) (*[]string, error)
 }
 
 type bot struct {
@@ -143,6 +144,10 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 	} else {
 		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, replyMessage, nil)
 	}
+}
+
+func (b *bot) GetAllChannels(ctx context.Context) (*[]string, error) {
+	return b.mainDB.FindAllTwitchLogins(ctx)
 }
 
 func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identifier string, format string) string {

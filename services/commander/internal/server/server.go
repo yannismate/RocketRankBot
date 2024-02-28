@@ -18,3 +18,11 @@ func (s *Server) ExecutePossibleCommand(ctx context.Context, req *commander.Exec
 	go s.botInstance.ExecutePossibleCommand(ctx, req)
 	return &commander.ExecutePossibleCommandRes{}, nil
 }
+
+func (s *Server) GetAllChannels(ctx context.Context, _ *commander.GetAllChannelsReq) (*commander.GetAllChannelsRes, error) {
+	channels, err := s.botInstance.GetAllChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &commander.GetAllChannelsRes{TwitchChannelLogin: *channels}, nil
+}

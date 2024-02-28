@@ -33,6 +33,8 @@ const _ = twirp.TwirpPackageMinVersion_8_1_0
 
 type Commander interface {
 	ExecutePossibleCommand(context.Context, *ExecutePossibleCommandReq) (*ExecutePossibleCommandRes, error)
+
+	GetAllChannels(context.Context, *GetAllChannelsReq) (*GetAllChannelsRes, error)
 }
 
 // =========================
@@ -41,7 +43,7 @@ type Commander interface {
 
 type commanderProtobufClient struct {
 	client      HTTPClient
-	urls        [1]string
+	urls        [2]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -69,8 +71,9 @@ func NewCommanderProtobufClient(baseURL string, client HTTPClient, opts ...twirp
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "github.com.yannismate.rocketrankbot.commander", "Commander")
-	urls := [1]string{
+	urls := [2]string{
 		serviceURL + "ExecutePossibleCommand",
+		serviceURL + "GetAllChannels",
 	}
 
 	return &commanderProtobufClient{
@@ -127,13 +130,59 @@ func (c *commanderProtobufClient) callExecutePossibleCommand(ctx context.Context
 	return out, nil
 }
 
+func (c *commanderProtobufClient) GetAllChannels(ctx context.Context, in *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "github.com.yannismate.rocketrankbot.commander")
+	ctx = ctxsetters.WithServiceName(ctx, "Commander")
+	ctx = ctxsetters.WithMethodName(ctx, "GetAllChannels")
+	caller := c.callGetAllChannels
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetAllChannelsReq)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetAllChannelsReq) when calling interceptor")
+					}
+					return c.callGetAllChannels(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetAllChannelsRes)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetAllChannelsRes) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *commanderProtobufClient) callGetAllChannels(ctx context.Context, in *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+	out := new(GetAllChannelsRes)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // =====================
 // Commander JSON Client
 // =====================
 
 type commanderJSONClient struct {
 	client      HTTPClient
-	urls        [1]string
+	urls        [2]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -161,8 +210,9 @@ func NewCommanderJSONClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "github.com.yannismate.rocketrankbot.commander", "Commander")
-	urls := [1]string{
+	urls := [2]string{
 		serviceURL + "ExecutePossibleCommand",
+		serviceURL + "GetAllChannels",
 	}
 
 	return &commanderJSONClient{
@@ -205,6 +255,52 @@ func (c *commanderJSONClient) ExecutePossibleCommand(ctx context.Context, in *Ex
 func (c *commanderJSONClient) callExecutePossibleCommand(ctx context.Context, in *ExecutePossibleCommandReq) (*ExecutePossibleCommandRes, error) {
 	out := new(ExecutePossibleCommandRes)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *commanderJSONClient) GetAllChannels(ctx context.Context, in *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "github.com.yannismate.rocketrankbot.commander")
+	ctx = ctxsetters.WithServiceName(ctx, "Commander")
+	ctx = ctxsetters.WithMethodName(ctx, "GetAllChannels")
+	caller := c.callGetAllChannels
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetAllChannelsReq)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetAllChannelsReq) when calling interceptor")
+					}
+					return c.callGetAllChannels(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetAllChannelsRes)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetAllChannelsRes) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *commanderJSONClient) callGetAllChannels(ctx context.Context, in *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+	out := new(GetAllChannelsRes)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -318,6 +414,9 @@ func (s *commanderServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 	switch method {
 	case "ExecutePossibleCommand":
 		s.serveExecutePossibleCommand(ctx, resp, req)
+		return
+	case "GetAllChannels":
+		s.serveGetAllChannels(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -483,6 +582,186 @@ func (s *commanderServer) serveExecutePossibleCommandProtobuf(ctx context.Contex
 	}
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *ExecutePossibleCommandRes and nil error while calling ExecutePossibleCommand. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *commanderServer) serveGetAllChannels(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveGetAllChannelsJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveGetAllChannelsProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *commanderServer) serveGetAllChannelsJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetAllChannels")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(GetAllChannelsReq)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Commander.GetAllChannels
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetAllChannelsReq)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetAllChannelsReq) when calling interceptor")
+					}
+					return s.Commander.GetAllChannels(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetAllChannelsRes)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetAllChannelsRes) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *GetAllChannelsRes
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *GetAllChannelsRes and nil error while calling GetAllChannels. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *commanderServer) serveGetAllChannelsProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetAllChannels")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(GetAllChannelsReq)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Commander.GetAllChannels
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetAllChannelsReq) (*GetAllChannelsRes, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetAllChannelsReq)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetAllChannelsReq) when calling interceptor")
+					}
+					return s.Commander.GetAllChannels(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*GetAllChannelsRes)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*GetAllChannelsRes) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *GetAllChannelsRes
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *GetAllChannelsRes and nil error while calling GetAllChannels. nil responses are not supported"))
 		return
 	}
 
@@ -1087,25 +1366,29 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 317 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0xcf, 0x4a, 0x03, 0x31,
-	0x10, 0xc6, 0xdd, 0xaa, 0xfd, 0x13, 0x29, 0x85, 0x1c, 0x34, 0x2a, 0x42, 0x29, 0x1e, 0x7a, 0x31,
-	0x82, 0x5e, 0x3c, 0xb7, 0x2b, 0x58, 0xb0, 0x22, 0x15, 0x2f, 0xde, 0xb2, 0xd9, 0x61, 0x37, 0x74,
-	0x37, 0x59, 0x33, 0x29, 0xda, 0x97, 0xf2, 0x09, 0x7c, 0x23, 0x5f, 0x42, 0x5c, 0x6d, 0x77, 0x57,
-	0xba, 0x07, 0xc1, 0x5b, 0xf2, 0xfb, 0x66, 0xbe, 0x84, 0xf9, 0x86, 0x9c, 0xd8, 0x4c, 0x9e, 0x4b,
-	0x93, 0xa6, 0x42, 0x87, 0x60, 0x8b, 0x13, 0xcf, 0xac, 0x71, 0x86, 0x9e, 0x45, 0xca, 0xc5, 0x8b,
-	0x80, 0x4b, 0x93, 0xf2, 0xa5, 0xd0, 0x5a, 0x61, 0x2a, 0x1c, 0x70, 0x6b, 0xe4, 0x1c, 0x9c, 0x15,
-	0x7a, 0x1e, 0x18, 0xc7, 0xd7, 0x4d, 0x83, 0x8f, 0x06, 0x39, 0xbc, 0x7e, 0x05, 0xb9, 0x70, 0x70,
-	0x6f, 0x10, 0x55, 0x90, 0xc0, 0xf8, 0x5b, 0x9c, 0xc1, 0x33, 0x1d, 0x92, 0x9e, 0x7b, 0x51, 0x4e,
-	0xc6, 0xe3, 0x58, 0x68, 0x0d, 0xc9, 0xc4, 0x67, 0x5e, 0xdf, 0x1b, 0x76, 0x66, 0xbf, 0x31, 0xe5,
-	0x84, 0x56, 0xd0, 0xad, 0x89, 0x94, 0x66, 0x8d, 0xbc, 0x78, 0x83, 0x52, 0x38, 0x4f, 0x01, 0x51,
-	0x44, 0x30, 0xf1, 0xd9, 0x76, 0xd9, 0x79, 0x8d, 0x0b, 0xe7, 0x07, 0xf8, 0xfa, 0xf1, 0x23, 0x82,
-	0x9d, 0xf8, 0x6c, 0xa7, 0xec, 0x5c, 0x56, 0xe8, 0x15, 0x39, 0x28, 0x53, 0x5f, 0x61, 0x96, 0x88,
-	0xe5, 0x9d, 0x48, 0x81, 0xed, 0xe6, 0x4d, 0x75, 0x32, 0xed, 0x93, 0x3d, 0x85, 0x53, 0x13, 0x82,
-	0x15, 0xce, 0x58, 0xd6, 0xec, 0x7b, 0xc3, 0xf6, 0xac, 0x8c, 0xe8, 0x29, 0xe9, 0x2a, 0x1c, 0x59,
-	0x23, 0x42, 0x29, 0xd0, 0x81, 0x65, 0xad, 0xbc, 0xa6, 0x0a, 0x29, 0x23, 0xad, 0x9f, 0x01, 0xb3,
-	0x76, 0xfe, 0xe2, 0xea, 0x3a, 0x38, 0xae, 0x1f, 0x36, 0x5e, 0xbc, 0x7b, 0xa4, 0x33, 0x5e, 0x05,
-	0x43, 0xdf, 0x3c, 0xb2, 0xbf, 0xb9, 0x96, 0xde, 0xf0, 0x3f, 0x65, 0xcc, 0x6b, 0xf3, 0x3d, 0xfa,
-	0x2f, 0x27, 0x1c, 0x6c, 0x8d, 0x7a, 0x4f, 0xdd, 0xca, 0x66, 0x06, 0xcd, 0x7c, 0x21, 0x2f, 0x3f,
-	0x03, 0x00, 0x00, 0xff, 0xff, 0x3b, 0x16, 0x3a, 0xb2, 0xb1, 0x02, 0x00, 0x00,
+	// 369 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x93, 0xcf, 0x4e, 0xdb, 0x40,
+	0x10, 0xc6, 0xe3, 0xa4, 0xcd, 0x9f, 0xad, 0xd2, 0xa8, 0x5b, 0xa9, 0xdd, 0xa6, 0xaa, 0x64, 0x59,
+	0x3d, 0xe4, 0xc2, 0x22, 0xc1, 0x85, 0x23, 0xc4, 0x46, 0x10, 0x89, 0x20, 0x64, 0xc4, 0x85, 0xdb,
+	0xda, 0x19, 0x25, 0xab, 0xd8, 0xde, 0x64, 0x67, 0x23, 0xc8, 0x8b, 0xf0, 0x18, 0xbc, 0x0d, 0x4f,
+	0xc1, 0x4b, 0x20, 0x4c, 0xfe, 0xd8, 0x24, 0x3e, 0x44, 0x70, 0xb3, 0xbf, 0x6f, 0xe6, 0xf3, 0xe8,
+	0xe7, 0x19, 0xf2, 0x4f, 0x4f, 0xc2, 0xfd, 0x50, 0xc5, 0xb1, 0x48, 0x06, 0xa0, 0xd7, 0x4f, 0x7c,
+	0xa2, 0x95, 0x51, 0x74, 0x6f, 0x28, 0xcd, 0x68, 0x16, 0xf0, 0x50, 0xc5, 0x7c, 0x2e, 0x92, 0x44,
+	0x62, 0x2c, 0x0c, 0x70, 0xad, 0xc2, 0x31, 0x18, 0x2d, 0x92, 0x71, 0xa0, 0x0c, 0x5f, 0x35, 0x39,
+	0xcf, 0x65, 0xf2, 0xe7, 0xf4, 0x1e, 0xc2, 0x99, 0x81, 0x2b, 0x85, 0x28, 0x83, 0x08, 0xdc, 0x37,
+	0xd3, 0x87, 0x29, 0xed, 0x90, 0x96, 0xb9, 0x93, 0x26, 0x1c, 0xb9, 0x23, 0x91, 0x24, 0x10, 0xf5,
+	0x3c, 0x66, 0xd9, 0x56, 0xa7, 0xe1, 0xbf, 0x97, 0x29, 0x27, 0x34, 0x27, 0x5d, 0xa8, 0xa1, 0x4c,
+	0x58, 0x39, 0x2d, 0xde, 0xe2, 0xac, 0x93, 0xfb, 0x80, 0x28, 0x86, 0xd0, 0xf3, 0x58, 0x25, 0x9b,
+	0xbc, 0x92, 0xd7, 0xc9, 0xd7, 0xf0, 0x3a, 0xf1, 0x0d, 0x82, 0xee, 0x79, 0xec, 0x4b, 0x36, 0x39,
+	0xeb, 0xd0, 0x23, 0xf2, 0x3b, 0xab, 0x7a, 0x12, 0x27, 0x91, 0x98, 0x5f, 0x8a, 0x18, 0xd8, 0xd7,
+	0xb4, 0xa9, 0xc8, 0xa6, 0x36, 0xf9, 0x26, 0xb1, 0xaf, 0x06, 0xa0, 0x85, 0x51, 0x9a, 0x55, 0x6d,
+	0xab, 0x53, 0xf7, 0xb3, 0x12, 0xfd, 0x4f, 0x9a, 0x12, 0xbb, 0x5a, 0x89, 0x41, 0x28, 0xd0, 0x80,
+	0x66, 0xb5, 0xb4, 0x26, 0x2f, 0x52, 0x46, 0x6a, 0x0b, 0xc0, 0xac, 0x9e, 0x7e, 0x71, 0xf9, 0xea,
+	0xfc, 0x2d, 0x86, 0x8d, 0xce, 0x4f, 0xf2, 0xe3, 0x0c, 0xcc, 0x49, 0x14, 0x2d, 0x40, 0xa1, 0x0f,
+	0x53, 0xc7, 0xdd, 0x14, 0xb1, 0x00, 0xb6, 0x65, 0x57, 0xb6, 0xc3, 0x3e, 0x78, 0x2a, 0x93, 0x86,
+	0xbb, 0xfc, 0xe5, 0xf4, 0xd1, 0x22, 0xbf, 0xb6, 0x4f, 0x41, 0xcf, 0xf9, 0x4e, 0xdb, 0xc3, 0x0b,
+	0x37, 0xa7, 0xfd, 0x59, 0x49, 0xe8, 0x94, 0xe8, 0x83, 0x45, 0xbe, 0xe7, 0x21, 0xd0, 0xe3, 0x1d,
+	0xe3, 0x37, 0xc0, 0xb6, 0x3f, 0x9a, 0x80, 0x4e, 0xa9, 0xdb, 0xba, 0x6d, 0xe6, 0x8e, 0x31, 0xa8,
+	0xa6, 0x37, 0x78, 0xf8, 0x12, 0x00, 0x00, 0xff, 0xff, 0x37, 0x73, 0xd6, 0x79, 0xa4, 0x03, 0x00,
+	0x00,
 }

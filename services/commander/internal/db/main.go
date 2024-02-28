@@ -14,6 +14,7 @@ type mainDB struct {
 type MainDB interface {
 	FindCommand(ctx context.Context, channelID string, commandName string) (*BotCommand, bool, error)
 	FindUser(ctx context.Context, twitchUserID string) (*BotUser, bool, error)
+	FindAllTwitchLogins(ctx context.Context) (*[]string, error)
 	AddUser(ctx context.Context, user *BotUser) error
 	AddCommand(ctx context.Context, cmd *BotCommand) error
 	DeleteCommand(ctx context.Context, channelId string, commandName string) error

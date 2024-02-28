@@ -4,6 +4,7 @@ option go_package = "rpc/commander";
 
 service Commander {
   rpc ExecutePossibleCommand(ExecutePossibleCommandReq) returns (ExecutePossibleCommandRes) {}
+  rpc GetAllChannels(GetAllChannelsReq) returns (GetAllChannelsRes) {}
 }
 
 message ExecutePossibleCommandReq {
@@ -18,3 +19,8 @@ message ExecutePossibleCommandReq {
 }
 
 message ExecutePossibleCommandRes {}
+
+message GetAllChannelsReq {}
+message GetAllChannelsRes {
+    repeated string twitchChannelLogin = 1;
+}
