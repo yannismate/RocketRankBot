@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commander
+  namespace: rocketrankbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: commander
+  template:
+    metadata:
+      labels:
+        app: commander
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: commander-config
+            defaultMode: 420
+      containers:
+        - name: commander
+          image: yannismate/rrb-commander:main
+          ports:
+            - name: rpc
+              containerPort: 3000
+              protocol: TCP
+            - name: admin
+              containerPort: 3001
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+          livenessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commander
+  namespace: rocketrankbot
+  labels:
+    app: commander
+spec:
+  ports:
+    - name: rpc
+      port: 3000
+      protocol: TCP
+      targetPort: rpc
+    - name: admin
+      port: 3001
+      protocol: TCP
+      targetPort: rpc
+  selector:
+    app: commander
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: commander-config
+  namespace: rocketrankbot
+data:
+  config.json: |
+    {
+      "appPort": 3000,
+      "adminPort": 3001,
+      "db": {
+        "main": "maindb.rocketrankbot.svc.cluster.local",
+        "cache": "cache.rocketrankbot.svc.cluster.local"
+      },
+      "services": {
+        "trackerGgScraper": "trackerggscraper.rocketrankbot.svc.cluster.local:3000",
+        "twitchConnector": "twitchconnector.rocketrankbot.svc.cluster.local:3000"
+      },
+      "ttl": {
+        "commands": 600,
+        "rank": 300
+      },
+      "commandTimeoutSeconds": "8",
+      "botChannelName": "rocketrankbot"
+    }
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: commander
+  namespace: monitoring
+  labels:
+    app: commander
+    release: prometheus
+spec:
+  jobLabel: commander
+  selector:
+    matchLabels:
+      app: commander
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: admin

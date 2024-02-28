@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twitchconnector
+  namespace: rocketrankbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: twitchconnector
+  template:
+    metadata:
+      labels:
+        app: twitchconnector
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: twitchconnector-config
+            defaultMode: 420
+      containers:
+        - name: twitchconnector
+          image: yannismate/rrb-twitchconnector:main
+          ports:
+            - name: rpc
+              containerPort: 3000
+              protocol: TCP
+            - name: admin
+              containerPort: 3001
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+          envFrom:
+            - secretRef:
+                name: twitchconnector-secrets
+          livenessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: twitchconnector
+  namespace: rocketrankbot
+  labels:
+    app: twitchconnector
+spec:
+  ports:
+    - name: rpc
+      port: 3000
+      protocol: TCP
+      targetPort: rpc
+    - name: admin
+      port: 3001
+      protocol: TCP
+      targetPort: rpc
+  selector:
+    app: twitchconnector
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: twitchconnector-config
+  namespace: rocketrankbot
+data:
+  config.json: |
+    {
+      "appPort": 3000,
+      "adminPort": 3001,
+      "services": {
+        "commander": "commander.rocketrankbot.cluster.local:3000"
+      },
+      "twitch": {
+        "login": "rocketrankbot",
+        "clientId": "replace_with_env",
+        "clientSecret": "replace_with_env"
+      },
+      "commandPrefix": "!"
+    }
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: twitchconnector
+  namespace: monitoring
+  labels:
+    app: twitchconnector
+    release: prometheus
+spec:
+  jobLabel: twitchconnector
+  selector:
+    matchLabels:
+      app: twitchconnector
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: admin

@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trackerggscraper
+  namespace: rocketrankbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trackerggscraper
+  template:
+    metadata:
+      labels:
+        app: trackerggscraper
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: trackerggscraper-config
+            defaultMode: 420
+      containers:
+        - name: trackerggscraper
+          image: yannismate/rrb-trackerggscraper:main
+          ports:
+            - name: rpc
+              containerPort: 3000
+              protocol: TCP
+            - name: admin
+              containerPort: 3001
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+          livenessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            tcpSocket:
+              port: admin
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trackerggscraper
+  namespace: rocketrankbot
+  labels:
+    app: trackerggscraper
+spec:
+  ports:
+    - name: rpc
+      port: 3000
+      protocol: TCP
+      targetPort: rpc
+    - name: admin
+      port: 3001
+      protocol: TCP
+      targetPort: rpc
+  selector:
+    app: trackerggscraper
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trackerggscraper-config
+  namespace: rocketrankbot
+data:
+  config.json: |
+    {
+      "APP_PORT": 3000,
+      "ADMIN_PORT": 3001
+    }
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: trackerggscraper
+  namespace: monitoring
+  labels:
+    app: trackerggscraper
+    release: prometheus
+spec:
+  jobLabel: trackerggscraper
+  selector:
+    matchLabels:
+      app: trackerggscraper
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: admin

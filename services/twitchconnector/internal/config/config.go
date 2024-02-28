@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"io"
 	"os"
 )
@@ -41,6 +42,13 @@ func ReadConfig(path string) (*TwitchconnectorConfig, error) {
 	err = json.Unmarshal(fileBytes, &cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	cfg.Twitch.ClientID = os.Getenv("TWITCH_CLIENT_ID")
+	cfg.Twitch.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET")
+
+	if len(cfg.Twitch.ClientID) == 0 || len(cfg.Twitch.ClientSecret) == 0 {
+		log.Warn().Msg("Twitch Client ID or Secret are empty.")
 	}
 
 	return &cfg, nil
