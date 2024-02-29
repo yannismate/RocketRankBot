@@ -18,6 +18,10 @@ spec:
           configMap:
             name: trackerggscraper-config
             defaultMode: 420
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
       containers:
         - name: trackerggscraper
           image: yannismate/rrb-trackerggscraper:main

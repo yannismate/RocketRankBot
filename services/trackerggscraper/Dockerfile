@@ -2,7 +2,7 @@ FROM node:20 AS build-env
 COPY . /app
 WORKDIR /app
 
-RUN npm ci --omit=dev
+RUN npm ci
 RUN npm run build
 
 FROM gcr.io/distroless/nodejs20-debian12
