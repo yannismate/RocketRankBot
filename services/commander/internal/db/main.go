@@ -5,13 +5,16 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
+	"time"
 )
 
 type mainDB struct {
-	dbPool *pgxpool.Pool
+	dbPool   *pgxpool.Pool
+	lastPing time.Time
 }
 
 type MainDB interface {
+	IsConnected() bool
 	FindCommand(ctx context.Context, channelID string, commandName string) (*BotCommand, bool, error)
 	FindUser(ctx context.Context, twitchUserID string) (*BotUser, bool, error)
 	FindAllTwitchLogins(ctx context.Context) (*[]string, error)
@@ -29,5 +32,24 @@ func NewMainDB(cfg *config.CommanderConfig) (MainDB, error) {
 		return nil, err
 	}
 
-	return &mainDB{dbPool: dbPool}, nil
+	return &mainDB{
+		dbPool:   dbPool,
+		lastPing: time.Now(),
+	}, nil
+}
+
+func (m *mainDB) IsConnected() bool {
+	if m.lastPing.Add(time.Second).After(time.Now()) {
+		return true
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err := m.dbPool.Ping(ctx)
+
+	if err == nil {
+		m.lastPing = time.Now()
+		return true
+	}
+	return false
 }

@@ -33,16 +33,18 @@ spec:
               mountPath: /config.yaml
               subPath: config.yaml
           livenessProbe:
-            tcpSocket:
+            httpGet:
               port: admin
+              path: /health
             initialDelaySeconds: 30
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 6
           readinessProbe:
-            tcpSocket:
+            httpGet:
               port: admin
+              path: /ready
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 10

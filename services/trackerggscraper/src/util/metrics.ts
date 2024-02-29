@@ -10,6 +10,12 @@ const metricsServer = express();
 metricsServer.get('/metrics', async (req, res) => {
     res.contentType(register.contentType).end(await register.metrics());
 });
+metricsServer.get('/health', async (req, res) => {
+   res.send('OK');
+});
+metricsServer.get('/ready', async (req, res) => {
+    res.send('OK');
+});
 
 new promClient.Gauge({
     name: "scraper_ratelimit_wait_seconds",

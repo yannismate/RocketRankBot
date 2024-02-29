@@ -4,12 +4,14 @@ import (
 	"RocketRankBot/services/commander/internal/config"
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/internal/formatter"
+	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/rpc/commander"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"RocketRankBot/services/commander/rpc/twitchconnector"
 	"bytes"
 	"context"
 	"errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
 	"strings"
@@ -65,6 +67,7 @@ var (
 )
 
 func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.ExecutePossibleCommandReq) {
+	executionStartedAt := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, b.commandTimeout)
 	defer cancel()
 
@@ -76,6 +79,10 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 		if strings.ToLower(req.TwitchChannelLogin) != strings.ToLower(b.botChannelName) && !req.IsModerator && !req.IsBroadcaster {
 			return
 		}
+
+		defer metrics.HistogramCommandResponseTime.With(prometheus.Labels{"type": "builtin"}).Observe(float64(time.Now().UnixMilli() - executionStartedAt.UnixMilli()))
+		metrics.CounterExecutedCommandsBuiltin.Inc()
+
 		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing builtin command")
 		cmdFunc(ctx, req)
 		return
@@ -94,6 +101,10 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 		if time.Now().Before(cachedCommand.NextExecutionAllowedTime) {
 			return
 		}
+		defer metrics.HistogramCommandResponseTime.With(prometheus.Labels{"type": "rank"}).Observe(float64(time.Now().UnixMilli() - executionStartedAt.UnixMilli()))
+		metrics.CounterExecutedCommandsRank.Inc()
+		metrics.CounterCachedCommandsRank.Inc()
+
 		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing cached rank command")
 		replyMessage = b.getRankMessage(ctx, cachedCommand.RLPlatform, cachedCommand.RLUsername, cachedCommand.MessageFormat)
 		replyType = cachedCommand.TwitchResponseType
@@ -110,6 +121,8 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 			return
 		}
 
+		defer metrics.HistogramCommandResponseTime.With(prometheus.Labels{"type": "rank"}).Observe(float64(time.Now().UnixMilli() - executionStartedAt.UnixMilli()))
+		metrics.CounterExecutedCommandsRank.Inc()
 		log.Ctx(ctx).Info().Str("channel-id", req.TwitchChannelID).Str("channel-login", req.TwitchChannelLogin).Str("sender-id", req.TwitchSenderUserID).Str("sender-login", strings.ToLower(req.TwitchSenderDisplayName)).Str("command", req.Command).Msg("Executing rank command")
 
 		replyType = command.TwitchResponseType
@@ -155,6 +168,9 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 	rankRes, wasCached, err := b.cacheDB.FindCachedRank(ctx, platform, identifier)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Error looking up cached rank")
+	}
+	if wasCached {
+		metrics.CounterCachedRequestsRank.Inc()
 	}
 
 	if !wasCached {

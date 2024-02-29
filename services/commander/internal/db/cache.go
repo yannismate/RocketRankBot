@@ -14,10 +14,12 @@ const (
 )
 
 type cacheDB struct {
-	client *redis.Client
+	client   *redis.Client
+	lastPing time.Time
 }
 
 type CacheDB interface {
+	IsConnected() bool
 	FindCachedCommand(ctx context.Context, channelID string, commandName string) (*CachedCommand, bool, error)
 	FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*trackerggscraper.PlayerCurrentRanksRes, bool, error)
 	SetCachedCommand(ctx context.Context, channelID string, commandName string, cachedCmd *CachedCommand, ttl time.Duration) error
@@ -37,6 +39,23 @@ func NewCache(cfg *config.CommanderConfig) (CacheDB, error) {
 		return nil, res.Err()
 	}
 	return &cacheDB{
-		client: client,
+		client:   client,
+		lastPing: time.Now(),
 	}, nil
+}
+
+func (c *cacheDB) IsConnected() bool {
+	if c.lastPing.Add(time.Second).After(time.Now()) {
+		return true
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	err := c.client.Ping(ctx)
+
+	if err == nil {
+		c.lastPing = time.Now()
+		return true
+	}
+	return false
 }

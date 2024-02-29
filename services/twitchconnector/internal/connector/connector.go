@@ -3,6 +3,7 @@ package connector
 import (
 	"RocketRankBot/services/twitchconnector/internal/auth"
 	"RocketRankBot/services/twitchconnector/internal/config"
+	"RocketRankBot/services/twitchconnector/internal/metrics"
 	"RocketRankBot/services/twitchconnector/rpc/commander"
 	"context"
 	"errors"
@@ -27,6 +28,7 @@ var (
 
 type Connector interface {
 	Start()
+	IsConnected() bool
 	JoinChannel(channel string) error
 	LeaveChannel(channel string) error
 	SendMessage(channel string, msg string) error
@@ -40,6 +42,7 @@ type connector struct {
 	retryInterval   time.Duration
 	commandPrefix   string
 	twitchClient    *twitch.Client
+	isConnected     bool
 }
 
 func NewConnector(cfg *config.TwitchconnectorConfig, commander commander.Commander) Connector {
@@ -51,6 +54,10 @@ func NewConnector(cfg *config.TwitchconnectorConfig, commander commander.Command
 		twitchLogin:     cfg.Twitch.Login,
 		commandPrefix:   cfg.CommandPrefix,
 	}
+}
+
+func (c *connector) IsConnected() bool {
+	return c.isConnected
 }
 
 func (c *connector) Start() {
@@ -70,6 +77,7 @@ func (c *connector) JoinChannel(channel string) error {
 		return TwitchClientNotConnectedErr
 	}
 	c.twitchClient.Join(channel)
+	metrics.GaugeJoinedChannels.Inc()
 	return nil
 }
 
@@ -78,6 +86,7 @@ func (c *connector) LeaveChannel(channel string) error {
 		return TwitchClientNotConnectedErr
 	}
 	c.twitchClient.Depart(channel)
+	metrics.GaugeJoinedChannels.Dec()
 	return nil
 }
 
@@ -86,6 +95,7 @@ func (c *connector) SendMessage(channel string, msg string) error {
 		return TwitchClientNotConnectedErr
 	}
 	c.twitchClient.Say(channel, msg)
+	metrics.CounterSentMessages.Inc()
 	return nil
 }
 
@@ -94,17 +104,16 @@ func (c *connector) SendResponseMessage(channel string, msg string, parentMsgID 
 		return TwitchClientNotConnectedErr
 	}
 	c.twitchClient.Reply(channel, parentMsgID, msg)
+	metrics.CounterSentMessages.Inc()
 	return nil
 }
 
 func (c *connector) tryStart() error {
+	defer func() {
+		c.isConnected = false
+		metrics.GaugeJoinedChannels.Set(0)
+	}()
 	ctx := newBotContext()
-
-	channelRes, err := c.commanderClient.GetAllChannels(ctx, &commander.GetAllChannelsReq{})
-	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("could not fetch channels from commander")
-		return err
-	}
 
 	twitchToken, err := c.twitchAuth.GetAccessToken()
 	if err != nil {
@@ -116,11 +125,23 @@ func (c *connector) tryStart() error {
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)
 	c.twitchClient.OnConnect(func() {
+		c.isConnected = true
+		metrics.GaugeJoinedChannels.Set(0)
+
+		channelRes, err := c.commanderClient.GetAllChannels(ctx, &commander.GetAllChannelsReq{})
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("could not fetch channels from commander")
+			_ = c.twitchClient.Disconnect()
+			return
+		}
+
 		currentOffset := 0
 		for {
 			toOffset := min(len(channelRes.TwitchChannelLogin)-1, currentOffset+1999)
 			log.Ctx(ctx).Info().Int("from-offset", currentOffset).Int("to-offset", toOffset).Msg("Executing channel joins")
 			c.twitchClient.Join(channelRes.TwitchChannelLogin[currentOffset:toOffset]...)
+			metrics.GaugeJoinedChannels.Add(float64(toOffset - currentOffset))
+
 			currentOffset += 2000
 			if currentOffset >= len(channelRes.TwitchChannelLogin) {
 				break
@@ -133,6 +154,8 @@ func (c *connector) tryStart() error {
 }
 
 func (c *connector) handleMessage(msg twitch.PrivateMessage) {
+	metrics.CounterReceivedMessages.Inc()
+
 	cmd, isCmd := strings.CutPrefix(msg.Message, c.commandPrefix)
 	if !isCmd {
 		cmd, isCmd = strings.CutPrefix(strings.ToLower(msg.Message), "@"+c.twitchLogin+" "+c.commandPrefix)
@@ -140,6 +163,8 @@ func (c *connector) handleMessage(msg twitch.PrivateMessage) {
 			return
 		}
 	}
+
+	metrics.CounterReceivedPossibleCommands.Inc()
 
 	ctx := newBotContext()
 	isMod := false

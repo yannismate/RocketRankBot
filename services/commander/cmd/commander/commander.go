@@ -4,6 +4,7 @@ import (
 	"RocketRankBot/services/commander/internal/bot"
 	"RocketRankBot/services/commander/internal/config"
 	"RocketRankBot/services/commander/internal/db"
+	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/internal/server"
 	"RocketRankBot/services/commander/rpc/commander"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
@@ -14,8 +15,6 @@ import (
 )
 
 func main() {
-	// TODO: Metrics
-
 	cfg, err := config.ReadConfig("config.json")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Config could not be read")
@@ -33,6 +32,10 @@ func main() {
 		log.Fatal().Err(err).Msg("Could not connect to cache database")
 		return
 	}
+
+	metrics.StartMetricsServer(":"+strconv.Itoa(cfg.AdminPort), func() bool {
+		return mainDB.IsConnected() && cacheDB.IsConnected()
+	})
 
 	twitchConnector := twitchconnector.NewTwitchConnectorProtobufClient(cfg.Services.TwitchConnector, http.DefaultClient)
 	trackerGgScraper := trackerggscraper.NewTrackerGgScraperProtobufClient(cfg.Services.TrackerGgScraper, http.DefaultClient)
