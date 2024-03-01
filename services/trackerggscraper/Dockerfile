@@ -6,6 +6,6 @@ RUN npm ci
 RUN npm run build
 
 FROM gcr.io/distroless/nodejs20-debian12
-COPY --from=build-env /app/out /app
+COPY --from=build-env /app /app
 WORKDIR /app
-CMD ["src/main.js"]
+CMD ["out/src/main.js"]
