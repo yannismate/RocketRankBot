@@ -104,7 +104,7 @@ data:
       "appPort": 3000,
       "adminPort": 3001,
       "db": {
-        "main": "postgres://commander:commander@maindb.rocketrankbot.svc.cluster.local:5432",
+        "main": "postgres://commander:commander@maindb.rocketrankbot.svc.cluster.local:5432/rocketrankbot",
         "cache": "cache.rocketrankbot.svc.cluster.local:6379"
       },
       "services": {
