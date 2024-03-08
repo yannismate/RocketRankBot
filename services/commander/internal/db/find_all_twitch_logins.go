@@ -10,13 +10,18 @@ func (m *mainDB) FindAllTwitchLogins(ctx context.Context) (*[]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	channels := new([]string)
+	var channels []string
 
-	err = rows.Scan(channels)
-	if err != nil {
-		return nil, err
+	for rows.Next() {
+		var ch string
+		err = rows.Scan(&ch)
+		if err != nil {
+			return nil, err
+		}
+		channels = append(channels, ch)
 	}
 
-	return channels, nil
+	return &channels, nil
 }

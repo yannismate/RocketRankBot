@@ -160,7 +160,11 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 }
 
 func (b *bot) GetAllChannels(ctx context.Context) (*[]string, error) {
-	return b.mainDB.FindAllTwitchLogins(ctx)
+	channels, err := b.mainDB.FindAllTwitchLogins(ctx)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("Could not fetch list of Twitch channels")
+	}
+	return channels, err
 }
 
 func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identifier string, format string) string {

@@ -108,8 +108,8 @@ data:
         "cache": "cache.rocketrankbot.svc.cluster.local:6379"
       },
       "services": {
-        "trackerGgScraper": "trackerggscraper.rocketrankbot.svc.cluster.local:3000",
-        "twitchConnector": "twitchconnector.rocketrankbot.svc.cluster.local:3000"
+        "trackerGgScraper": "http://trackerggscraper.rocketrankbot.svc.cluster.local:3000",
+        "twitchConnector": "http://twitchconnector.rocketrankbot.svc.cluster.local:3000"
       },
       "ttl": {
         "commands": 600,

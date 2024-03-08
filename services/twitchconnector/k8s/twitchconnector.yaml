@@ -86,7 +86,7 @@ data:
       "appPort": 3000,
       "adminPort": 3001,
       "services": {
-        "commander": "commander.rocketrankbot.cluster.local:3000"
+        "commander": "http://commander.rocketrankbot.svc.cluster.local:3000"
       },
       "twitch": {
         "login": "rocketrankbot",
