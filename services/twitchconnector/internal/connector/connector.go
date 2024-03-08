@@ -124,6 +124,9 @@ func (c *connector) tryStart() error {
 	c.twitchClient = twitch.NewClient(c.twitchLogin, "oauth:"+*twitchToken)
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)
+	c.twitchClient.OnNoticeMessage(func(message twitch.NoticeMessage) {
+		log.Ctx(newBotContext()).Debug().Any("msg", message).Msg("Received IRC NOTICE")
+	})
 	c.twitchClient.OnConnect(func() {
 		log.Ctx(ctx).Info().Msg("IRC connected")
 		c.isConnected = true
