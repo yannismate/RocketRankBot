@@ -121,11 +121,11 @@ func (c *connector) tryStart() error {
 		return err
 	}
 
-	log.Ctx(ctx).Info().Str("login", c.twitchLogin).Msg("Connecting to Twitch IRC")
 	c.twitchClient = twitch.NewClient(c.twitchLogin, "oauth:"+*twitchToken)
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)
 	c.twitchClient.OnConnect(func() {
+		log.Ctx(ctx).Info().Msg("IRC connected")
 		c.isConnected = true
 		metrics.GaugeJoinedChannels.Set(0)
 
@@ -136,6 +136,7 @@ func (c *connector) tryStart() error {
 			return
 		}
 
+		log.Ctx(ctx).Info().Int("channel_count", len(channelRes.TwitchChannelLogin)).Msg("Joining IRC channels")
 		currentOffset := 0
 		for {
 			toOffset := min(len(channelRes.TwitchChannelLogin)-1, currentOffset+1999)
@@ -149,8 +150,10 @@ func (c *connector) tryStart() error {
 			}
 			time.Sleep(time.Second * 10)
 		}
+		log.Ctx(ctx).Info().Msg("Finished IRC setup")
 		c.retryInterval = minRetryInterval
 	})
+	log.Ctx(ctx).Info().Str("login", c.twitchLogin).Msg("Connecting to Twitch IRC")
 	return c.twitchClient.Connect()
 }
 
