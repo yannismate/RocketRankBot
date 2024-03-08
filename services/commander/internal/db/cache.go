@@ -5,6 +5,7 @@ import (
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"context"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -51,11 +52,12 @@ func (c *cacheDB) IsConnected() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	err := c.client.Ping(ctx)
+	err := c.client.Ping(ctx).Err()
 
 	if err == nil {
 		c.lastPing = time.Now()
 		return true
 	}
+	log.Warn().Err(err).Msg("Cache database failed to respond to ping")
 	return false
 }

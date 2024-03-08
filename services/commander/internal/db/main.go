@@ -51,5 +51,6 @@ func (m *mainDB) IsConnected() bool {
 		m.lastPing = time.Now()
 		return true
 	}
+	log.Warn().Err(err).Msg("Main database failed to respond to ping")
 	return false
 }
