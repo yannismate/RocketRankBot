@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.4.3
+	github.com/prometheus/client_golang v1.19.0
 	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rs/zerolog v1.32.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
@@ -21,7 +22,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
