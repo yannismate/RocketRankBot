@@ -45,6 +45,7 @@ func main() {
 	serverInstance := server.NewServer(botInstance)
 	twirpHandler := server.WithLogging(commander.NewCommanderServer(&serverInstance))
 
+	log.Info().Str("bind_address", ":"+strconv.Itoa(cfg.AppPort)).Msg("Starting twirp server")
 	err = http.ListenAndServe(":"+strconv.Itoa(cfg.AppPort), twirpHandler)
 	if err != nil {
 		log.Fatal().Err(err).Msg("HTTP Listener error")

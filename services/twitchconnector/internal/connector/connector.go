@@ -122,7 +122,7 @@ func (c *connector) tryStart() error {
 	}
 
 	log.Ctx(ctx).Info().Str("login", c.twitchLogin).Msg("Connecting to Twitch IRC")
-	c.twitchClient = twitch.NewClient(c.twitchLogin, *twitchToken)
+	c.twitchClient = twitch.NewClient(c.twitchLogin, "oauth:"+*twitchToken)
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)
 	c.twitchClient.OnConnect(func() {

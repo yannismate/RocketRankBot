@@ -22,6 +22,7 @@ func StartMetricsServer(bindAddress string, checkReadiness func() bool) {
 			}
 		})
 
+		log.Info().Str("bind_address", bindAddress).Msg("Starting metrics server")
 		err := http.ListenAndServe(bindAddress, mux)
 		if err != nil {
 			log.Panic().Err(err).Msg("Metrics and k8s probe server failed")
