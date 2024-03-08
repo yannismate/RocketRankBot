@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"io"
 	"os"
+	"strings"
 )
 
 type TwitchconnectorConfig struct {
@@ -16,9 +17,8 @@ type TwitchconnectorConfig struct {
 	}
 
 	Twitch struct {
-		Login        string
-		ClientID     string
-		ClientSecret string
+		Login string
+		Token string
 	}
 
 	CommandPrefix string
@@ -44,11 +44,14 @@ func ReadConfig(path string) (*TwitchconnectorConfig, error) {
 		return nil, err
 	}
 
-	cfg.Twitch.ClientID = os.Getenv("TWITCH_CLIENT_ID")
-	cfg.Twitch.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET")
+	cfg.Twitch.Token = os.Getenv("TWITCH_TOKEN")
 
-	if len(cfg.Twitch.ClientID) == 0 || len(cfg.Twitch.ClientSecret) == 0 {
-		log.Warn().Msg("Twitch Client ID or Secret are empty.")
+	if len(cfg.Twitch.Token) == 0 {
+		log.Warn().Msg("Twitch Token is empty.")
+	}
+	if !strings.HasPrefix(cfg.Twitch.Token, "oauth:") {
+		log.Warn().Msg("Twitch Token should have oauth prefix!")
+		cfg.Twitch.Token = "oauth:" + cfg.Twitch.Token
 	}
 
 	return &cfg, nil

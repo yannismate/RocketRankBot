@@ -3,7 +3,7 @@ module RocketRankBot/services/twitchconnector
 go 1.21
 
 require (
-	github.com/gempir/go-twitch-irc/v4 v4.0.0
+	github.com/gempir/go-twitch-irc/v4 v4.0.1-0.20240302205024-81d96cf4f053
 	github.com/google/uuid v1.6.0
 	github.com/rs/zerolog v1.32.0
 	github.com/twitchtv/twirp v8.1.3+incompatible

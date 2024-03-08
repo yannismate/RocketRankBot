@@ -1,7 +1,6 @@
 package connector
 
 import (
-	"RocketRankBot/services/twitchconnector/internal/auth"
 	"RocketRankBot/services/twitchconnector/internal/config"
 	"RocketRankBot/services/twitchconnector/internal/metrics"
 	"RocketRankBot/services/twitchconnector/rpc/commander"
@@ -37,7 +36,7 @@ type Connector interface {
 
 type connector struct {
 	commanderClient commander.Commander
-	twitchAuth      auth.TwitchAuth
+	twitchToken     string
 	twitchLogin     string
 	retryInterval   time.Duration
 	commandPrefix   string
@@ -46,11 +45,9 @@ type connector struct {
 }
 
 func NewConnector(cfg *config.TwitchconnectorConfig, commander commander.Commander) Connector {
-	twitchAuth := auth.NewTwitchAuth(cfg)
-
 	return &connector{
 		commanderClient: commander,
-		twitchAuth:      twitchAuth,
+		twitchToken:     cfg.Twitch.Token,
 		twitchLogin:     cfg.Twitch.Login,
 		commandPrefix:   cfg.CommandPrefix,
 	}
@@ -115,18 +112,9 @@ func (c *connector) tryStart() error {
 	}()
 	ctx := newBotContext()
 
-	twitchToken, err := c.twitchAuth.GetAccessToken(ctx)
-	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("could not fetch twitch auth token")
-		return err
-	}
-
-	c.twitchClient = twitch.NewClient(c.twitchLogin, "oauth:"+*twitchToken)
+	c.twitchClient = twitch.NewClient(c.twitchLogin, c.twitchToken)
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)
-	c.twitchClient.OnNoticeMessage(func(message twitch.NoticeMessage) {
-		log.Ctx(newBotContext()).Debug().Any("msg", message).Msg("Received IRC NOTICE")
-	})
 	c.twitchClient.OnConnect(func() {
 		log.Ctx(ctx).Info().Msg("IRC connected")
 		c.isConnected = true
