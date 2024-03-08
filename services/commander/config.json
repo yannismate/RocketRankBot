@@ -13,6 +13,6 @@
     "commands": 600,
     "rank": 300
   },
-  "commandTimeoutSeconds": "8",
+  "commandTimeoutSeconds": 8,
   "botChannelName": "rocketrankbot"
 }

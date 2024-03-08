@@ -115,12 +115,13 @@ func (c *connector) tryStart() error {
 	}()
 	ctx := newBotContext()
 
-	twitchToken, err := c.twitchAuth.GetAccessToken()
+	twitchToken, err := c.twitchAuth.GetAccessToken(ctx)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("could not fetch twitch auth token")
 		return err
 	}
 
+	log.Ctx(ctx).Info().Str("login", c.twitchLogin).Msg("Connecting to Twitch IRC")
 	c.twitchClient = twitch.NewClient(c.twitchLogin, *twitchToken)
 	c.twitchClient.SetJoinRateLimiter(twitch.CreateVerifiedRateLimiter())
 	c.twitchClient.OnPrivateMessage(c.handleMessage)

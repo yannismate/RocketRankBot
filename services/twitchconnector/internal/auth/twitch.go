@@ -2,8 +2,10 @@ package auth
 
 import (
 	"RocketRankBot/services/twitchconnector/internal/config"
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,7 +22,7 @@ var (
 )
 
 type TwitchAuth interface {
-	GetAccessToken() (*string, error)
+	GetAccessToken(ctx context.Context) (*string, error)
 	Invalidate()
 }
 
@@ -46,7 +48,7 @@ type accessTokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-func (t *twitchAuth) GetAccessToken() (*string, error) {
+func (t *twitchAuth) GetAccessToken(ctx context.Context) (*string, error) {
 	if t.currentAccessToken != nil && t.currentAccessTokenExpiry != nil && t.currentAccessTokenExpiry.After(time.Now()) {
 		return t.currentAccessToken, nil
 	}
@@ -62,6 +64,7 @@ func (t *twitchAuth) GetAccessToken() (*string, error) {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	log.Ctx(ctx).Info().Str("client_id", t.clientID).Msg("Requesting new token from Twitch OAuth")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err

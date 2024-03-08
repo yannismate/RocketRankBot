@@ -18,6 +18,27 @@ spec:
           configMap:
             name: commander-config
             defaultMode: 420
+        - name: sql-migrations
+          configMap:
+            name: commander-migrations-configmap
+      initContainers:
+        - name: flyway
+          image: flyway/flyway:10-alpine
+          args:
+            - info
+            - repair
+            - migrate
+            - info
+          env:
+            - name: FLYWAY_URL
+              value: "jdbc:postgresql://maindb.rocketrankbot.svc.cluster.local:5432/rocketrankbot"
+            - name: FLYWAY_USER
+              value: flyway
+            - name: FLYWAY_PASSWORD
+              value: flyway
+          volumeMounts:
+            - mountPath: /flyway/sql
+              name: sql-migrations
       containers:
         - name: commander
           image: yannismate/rrb-commander:main
@@ -30,8 +51,8 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config
-              mountPath: /config.yaml
-              subPath: config.yaml
+              mountPath: /config.json
+              subPath: config.json
           livenessProbe:
             httpGet:
               port: admin
@@ -83,8 +104,8 @@ data:
       "appPort": 3000,
       "adminPort": 3001,
       "db": {
-        "main": "maindb.rocketrankbot.svc.cluster.local",
-        "cache": "cache.rocketrankbot.svc.cluster.local"
+        "main": "postgres://commander:commander@maindb.rocketrankbot.svc.cluster.local:5432",
+        "cache": "cache.rocketrankbot.svc.cluster.local:6379"
       },
       "services": {
         "trackerGgScraper": "trackerggscraper.rocketrankbot.svc.cluster.local:3000",
@@ -94,10 +115,9 @@ data:
         "commands": 600,
         "rank": 300
       },
-      "commandTimeoutSeconds": "8",
+      "commandTimeoutSeconds": 8,
       "botChannelName": "rocketrankbot"
     }
-
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor

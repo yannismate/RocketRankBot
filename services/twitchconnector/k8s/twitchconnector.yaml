@@ -30,8 +30,8 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config
-              mountPath: /config.yaml
-              subPath: config.yaml
+              mountPath: /config.json
+              subPath: config.json
           envFrom:
             - secretRef:
                 name: twitchconnector-secrets

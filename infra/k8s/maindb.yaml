@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: maindb-volume
+  namespace: rocketrankbot
+  labels:
+    type: local
+    app: maindb
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /data/postgresql
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - docker-desktop
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: maindb-volume-claim
+  namespace: rocketrankbot
+  labels:
+    app: maindb
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maindb
+  namespace: rocketrankbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maindb
+  template:
+    metadata:
+      labels:
+        app: maindb
+    spec:
+      containers:
+        - name: postgres
+          image: 'postgres:16'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: main
+              containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresdata
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-config
+          env:
+            - name: POSTGRES_PASSWORD
+              value: this_should_never_be_used
+      volumes:
+        - name: postgresdata
+          persistentVolumeClaim:
+            claimName: maindb-volume-claim
+        - name: init-config
+          configMap:
+            name: maindb-init-config
+            defaultMode: 420
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: maindb
+  namespace: rocketrankbot
+  labels:
+    app: maindb
+spec:
+  ports:
+    - name: main
+      port: 5432
+      protocol: TCP
+      targetPort: main
+  selector:
+    app: maindb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maindb-init-config
+  namespace: rocketrankbot
+data:
+  init_db.sh: |
+    #!/bin/bash
+    set -e
+    
+    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/init.sql
+  init.sql: |
+    CREATE ROLE apps NOLOGIN;
+    CREATE DATABASE rocketrankbot WITH OWNER apps;
+    CREATE USER flyway LOGIN PASSWORD 'flyway';
+    GRANT ALL PRIVILEGES ON DATABASE rocketrankbot TO flyway;
+    GRANT ALL ON SCHEMA public TO flyway;
+    CREATE USER commander LOGIN PASSWORD 'commander';
+    GRANT apps TO commander;
+    ALTER DEFAULT PRIVILEGES FOR USER flyway GRANT ALL ON TABLES TO apps;
+    ALTER DEFAULT PRIVILEGES FOR USER postgres GRANT ALL ON TABLES TO apps;
