@@ -133,6 +133,9 @@ func (c *connector) tryStart() error {
 		log.Ctx(ctx).Info().Int("channel_count", len(channelRes.TwitchChannelLogin)).Msg("Joining IRC channels")
 		currentOffset := 0
 		for {
+			if len(channelRes.TwitchChannelLogin) == 0 {
+				break
+			}
 			toOffset := min(len(channelRes.TwitchChannelLogin)-1, currentOffset+1999)
 			log.Ctx(ctx).Info().Int("from-offset", currentOffset).Int("to-offset", toOffset).Msg("Executing channel joins")
 			c.twitchClient.Join(channelRes.TwitchChannelLogin[currentOffset:toOffset]...)
