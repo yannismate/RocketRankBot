@@ -129,6 +129,9 @@ func (c *connector) tryStart() error {
 		c.isConnected = true
 		metrics.GaugeJoinedChannels.Set(0)
 
+		c.twitchClient.Join(c.twitchLogin)
+		metrics.GaugeJoinedChannels.Inc()
+
 		channelRes, err := c.commanderClient.GetAllChannels(ctx, &commander.GetAllChannelsReq{})
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("could not fetch channels from commander")
