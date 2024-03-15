@@ -1,13 +1,13 @@
 {
-  "appPort": 8080,
-  "adminPort": 8081,
+  "appPort": 3000,
+  "adminPort": 3001,
   "db": {
-    "main": "maindb.cluster.local",
-    "cache": "cache.cluster.local"
+    "main": "postgres://commander:commander@localhost:5432/rocketrankbot",
+    "cache": "localhost:6379"
   },
   "services": {
-    "trackerGgScraper": "trackerggscraper.cluster.local",
-    "twitchConnector": "twitchconnector.cluster.local"
+    "trackerGgScraper": "http://localhost:3010",
+    "twitchConnector": "http://localhost:3020"
   },
   "ttl": {
     "commands": 600,

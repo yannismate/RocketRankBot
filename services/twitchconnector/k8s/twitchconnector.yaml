@@ -89,9 +89,7 @@ data:
         "commander": "http://commander.rocketrankbot.svc.cluster.local:3000"
       },
       "twitch": {
-        "login": "rocketrankbot",
-        "clientId": "replace_with_env",
-        "clientSecret": "replace_with_env"
+        "login": "rocketrankbot"
       },
       "commandPrefix": "!"
     }

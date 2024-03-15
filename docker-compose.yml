@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+
+  maindb:
+    image: postgres:16
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - "./infra/docker-compose/postgres-init:/docker-entrypoint-initdb.d"
+      # - "./db-data:/var/lib/postgresql/data" # uncomment to persist data
+
+  cachedb:
+    image: redis:7
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  migrations:
+    image: flyway/flyway:10-alpine
+    command: "info repair migrate info"
+
+    depends_on:
+      - maindb
+    environment:
+      FLYWAY_URL: "jdbc:postgresql://maindb:5432/rocketrankbot"
+      FLYWAY_USER: flyway
+      FLYWAY_PASSWORD: flyway
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - "./services/commander/migrations:/flyway/sql"

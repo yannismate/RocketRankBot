@@ -47,7 +47,7 @@ func ReadConfig(path string) (*TwitchconnectorConfig, error) {
 	cfg.Twitch.Token = os.Getenv("TWITCH_TOKEN")
 
 	if len(cfg.Twitch.Token) == 0 {
-		log.Warn().Msg("Twitch Token is empty.")
+		log.Fatal().Msg("Twitch Token is empty.")
 	}
 	if !strings.HasPrefix(cfg.Twitch.Token, "oauth:") {
 		log.Warn().Msg("Twitch Token should have oauth prefix!")

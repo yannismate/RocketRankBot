@@ -1,13 +1,11 @@
 {
-  "appPort": 8080,
-  "adminPort": 8081,
+  "appPort": 3020,
+  "adminPort": 3021,
   "services": {
-    "commander": "commander.cluster.local"
+    "commander": "http://localhost:3000"
   },
   "twitch": {
-    "login": "rocketrankbot",
-    "clientId": "xxx",
-    "clientSecret": "xxx"
+    "login": "rocketrankbot"
   },
   "commandPrefix": "!"
 }

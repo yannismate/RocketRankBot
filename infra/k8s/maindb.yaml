@@ -66,6 +66,8 @@ spec:
               name: postgresdata
             - mountPath: /docker-entrypoint-initdb.d
               name: init-config
+            - mountPath: /docker-entrypoint-initdb.d/sql
+              name: init-sql
           env:
             - name: POSTGRES_PASSWORD
               value: this_should_never_be_used
@@ -73,9 +75,13 @@ spec:
         - name: postgresdata
           persistentVolumeClaim:
             claimName: maindb-volume-claim
-        - name: init-config
+        - name: init-script
           configMap:
-            name: maindb-init-config
+            name: maindb-init-script
+            defaultMode: 420
+        - name: init-sql
+          configMap:
+            name: maindb-init-sql
             defaultMode: 420
 ---
 apiVersion: v1
@@ -97,21 +103,32 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: maindb-init-config
+  name: maindb-init-script
   namespace: rocketrankbot
 data:
   init_db.sh: |
     #!/bin/bash
     set -e
     
-    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/init.sql
-  init.sql: |
+    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/sql/01-init.sql
+    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "rocketrankbot" -f /docker-entrypoint-initdb.d/sql/02-permissions.sql
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maindb-init-sql
+  namespace: rocketrankbot
+data:
+  01-init.sql: |
     CREATE ROLE apps NOLOGIN;
     CREATE DATABASE rocketrankbot WITH OWNER apps;
+    
     CREATE USER flyway LOGIN PASSWORD 'flyway';
     GRANT ALL PRIVILEGES ON DATABASE rocketrankbot TO flyway;
-    GRANT ALL ON SCHEMA public TO flyway;
+    
     CREATE USER commander LOGIN PASSWORD 'commander';
     GRANT apps TO commander;
+  02-permissions.sql: |
+    GRANT ALL ON SCHEMA public TO flyway;
     ALTER DEFAULT PRIVILEGES FOR USER flyway GRANT ALL ON TABLES TO apps;
     ALTER DEFAULT PRIVILEGES FOR USER postgres GRANT ALL ON TABLES TO apps;

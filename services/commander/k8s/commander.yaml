@@ -36,6 +36,8 @@ spec:
               value: flyway
             - name: FLYWAY_PASSWORD
               value: flyway
+            - name: FLYWAY_CONNECT_RETRIES
+              value: "10"
           volumeMounts:
             - mountPath: /flyway/sql
               name: sql-migrations
