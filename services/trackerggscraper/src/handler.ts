@@ -22,7 +22,7 @@ const trackerGgScraper: TrackerGgScraper = {
                 }
             });
         }
-        const response = await scraper.fetchRankData(playerCurrentRanksReq.platform, playerCurrentRanksReq.identifier);
+        const response = await scraper.fetchRankData(playerCurrentRanksReq.platform.toLowerCase(), playerCurrentRanksReq.identifier);
         if (response == TrackerGgError.UNKNOWN_ERROR) {
             throw new TwirpError({
                 code: "unknown",

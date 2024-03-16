@@ -10,11 +10,11 @@ func (m *mainDB) FindCommand(ctx context.Context, channelID string, commandName 
 	bc := BotCommand{}
 
 	err := m.dbPool.QueryRow(ctx, "select "+
-		"command_name, command_cooldown_sec, message_format, "+
+		"command_name, command_cooldown_seconds, message_format, "+
 		"twitch_user_id, twitch_response_type, rl_platform, rl_username "+
 		"from bot_commands "+
 		"where "+
-		"channel_id = $1 and command_name = $2;",
+		"twitch_user_id = $1 and command_name = $2;",
 		channelID, commandName).Scan(&bc.CommandName, &bc.CommandCooldownSeconds, &bc.MessageFormat, &bc.TwitchUserID,
 		&bc.TwitchResponseType, &bc.RLPlatform, &bc.RLUsername)
 

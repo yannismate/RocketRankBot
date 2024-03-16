@@ -32,7 +32,7 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePo
 
 	_, found, err := b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for command")
 		return
 	}
@@ -44,7 +44,7 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePo
 
 	err = b.mainDB.DeleteCommand(ctx, channelID, commandName)
 	if err != nil {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete command from db")
 		return
 	}

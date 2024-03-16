@@ -1,9 +1,12 @@
 package bot
 
-import "text/template"
+import (
+	"context"
+	"fmt"
+	"text/template"
+)
 
 const (
-	messageInternalError     = "Internal error occurred while executing the command. Please try again later and reach out if the issue persists."
 	messageRateLimited       = "Player rank could not be fetched due to rate limiting. Please try again later."
 	messageBroadcasterOnly   = "This command can only be executed by the broadcaster."
 	messageChannelNameUpdate = "Your name has changed, the bot has joined your channel under the new name. All commands were transferred."
@@ -14,3 +17,7 @@ const (
 var (
 	templateMessageNotFound = template.Must(template.New("playerNotFoundTemplate").Parse("Player {{ .PlayerName }} could not be found on {{ .PlayerPlatform }}."))
 )
+
+func getMessageInternalErrorWithCtx(ctx context.Context) string {
+	return fmt.Sprintf("Internal error occurred while executing the command. Please try again later and reach out if the issue persists (Trace-ID %v).", ctx.Value("trace-id"))
+}

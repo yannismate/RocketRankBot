@@ -36,7 +36,8 @@ export class TrackerGgScraper {
         let parsedResponse: TrackerGgApiResponse;
         try {
             parsedResponse = JSON.parse(text);
-        } catch (_) {
+        } catch (err) {
+            logger.warn({ msg: "Could not parse response JSON", error: err })
             return TrackerGgError.PARSING_ERROR;
         }
 
@@ -61,8 +62,8 @@ export class TrackerGgScraper {
                 })
             }
         } catch (err) {
-            logger.error({ msg: "Error during tracker.gg response parsing", error: err })
-            return TrackerGgError.UNKNOWN_ERROR
+            logger.error({ msg: "Error during tracker.gg response parsing", error: err, parsed_response: parsedResponse });
+            return TrackerGgError.UNKNOWN_ERROR;
         }
         return responseObj
     }
@@ -72,7 +73,7 @@ export class TrackerGgScraper {
             await this.start();
         }
         if (this.browser == undefined) {
-            throw Error("browser not available")
+            throw Error("browser not available");
         }
         const page = await this.browser.newPage();
 
@@ -88,7 +89,7 @@ export class TrackerGgScraper {
             await page.goto(buildUrl(platform, user), { waitUntil: "domcontentloaded" });
 
             content = await page.evaluate(() =>  {
-                return document.querySelector("body")?.innerText
+                return document.querySelector("body")?.innerText;
             }) || "";
         } finally {
             await page.close();

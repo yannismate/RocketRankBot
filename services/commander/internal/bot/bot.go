@@ -113,7 +113,7 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *commander.Execute
 	} else {
 		command, foundMain, err := b.mainDB.FindCommand(ctx, req.TwitchChannelID, baseCommand)
 		if err != nil {
-			replyMessage = messageInternalError
+			replyMessage = getMessageInternalErrorWithCtx(ctx)
 			log.Ctx(ctx).Error().Err(err).Msg("Error looking up command in DB")
 			return
 		}
@@ -201,13 +201,13 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 					err = templateMessageNotFound.Execute(&notFoundMessageBuf, notFoundStruct)
 					if err != nil {
 						log.Ctx(ctx).Error().Err(err).Msg("Error executing not found template")
-						return messageInternalError
+						return getMessageInternalErrorWithCtx(ctx)
 					}
 					return notFoundMessageBuf.String()
 				}
 			}
 			log.Ctx(ctx).Error().Err(err).Msg("Error getting ranks from scraping service")
-			return messageInternalError
+			return getMessageInternalErrorWithCtx(ctx)
 		}
 
 		err = b.cacheDB.SetCachedRank(ctx, platform, identifier, rankRes, b.cacheTTLRank)

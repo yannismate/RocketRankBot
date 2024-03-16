@@ -35,7 +35,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 	_, found, err := b.mainDB.FindUser(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for user")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		return
 	}
 	if !found {
@@ -53,7 +53,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 	_, found, err = b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for command")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		return
 	}
 	if found {
@@ -82,7 +82,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 	err = b.mainDB.AddCommand(ctx, &cmd)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not add command to db")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		return
 	}
 

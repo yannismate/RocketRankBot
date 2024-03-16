@@ -7,7 +7,7 @@ import (
 func (m *mainDB) AddCommand(ctx context.Context, cmd *BotCommand) error {
 	_, err := m.dbPool.Query(ctx, "insert into "+
 		"bot_commands "+
-		"(command_name, command_cooldown_sec, message_format, "+
+		"(command_name, command_cooldown_seconds, message_format, "+
 		"twitch_user_id, twitch_response_type, rl_platform, rl_username) "+
 		"values "+
 		"($1, $2, $3, $4, $5, $6, $7);",

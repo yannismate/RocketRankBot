@@ -136,7 +136,7 @@ func (c *connector) tryStart() error {
 			if len(channelRes.TwitchChannelLogin) == 0 {
 				break
 			}
-			toOffset := min(len(channelRes.TwitchChannelLogin)-1, currentOffset+1999)
+			toOffset := min(len(channelRes.TwitchChannelLogin), currentOffset+2000)
 			log.Ctx(ctx).Info().Int("from-offset", currentOffset).Int("to-offset", toOffset).Msg("Executing channel joins")
 			c.twitchClient.Join(channelRes.TwitchChannelLogin[currentOffset:toOffset]...)
 			metrics.GaugeJoinedChannels.Add(float64(toOffset - currentOffset))

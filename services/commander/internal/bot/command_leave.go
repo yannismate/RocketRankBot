@@ -25,7 +25,7 @@ func (b *bot) executeCommandLeave(ctx context.Context, req *commander.ExecutePos
 	err = b.mainDB.DeleteUserData(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete user data from db")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInternalError, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
 		return
 	}
 
