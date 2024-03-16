@@ -47,11 +47,12 @@ func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, t
 		botChannelName:   cfg.BotChannelName,
 	}
 	b.configCommands = map[string]func(ctx context.Context, req *commander.ExecutePossibleCommandReq){
-		"join":   b.executeCommandJoin,
-		"leave":  b.executeCommandLeave,
-		"addcom": b.executeCommandAddcom,
-		"delcom": b.executeCommandDelcom,
-		// TODO: edit commands, twitchconnector service
+		"join":    b.executeCommandJoin,
+		"leave":   b.executeCommandLeave,
+		"addcom":  b.executeCommandAddcom,
+		"delcom":  b.executeCommandDelcom,
+		"editcom": b.executeCommandEditcom,
+		// TODO: listcom
 	}
 
 	return &b

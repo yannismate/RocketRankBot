@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	messageDelcomUsage         = "Unexpected Arguments. Usage: !addcom [command] [platform] [username]"
-	messageCommandDoesNotExist = "Command could not be found."
-	messageCommandDeleted      = "Command successfully deleted."
+	messageDelcomUsage    = "Unexpected Arguments. Usage: !addcom [command] [platform] [username]"
+	messageCommandDeleted = "Command successfully deleted."
 )
 
 func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePossibleCommandReq) {
