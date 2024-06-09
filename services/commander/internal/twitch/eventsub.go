@@ -20,7 +20,7 @@ type CreateEventSubSubscriptionRequest struct {
 	Type      string               `json:"type"`
 	Version   string               `json:"version"`
 	Condition interface{}          `json:"condition"`
-	Transport EventSubTransportReq `json:"shards"`
+	Transport EventSubTransportReq `json:"transport"`
 }
 type EventSubTransportReq struct {
 	Method    string `json:"method"`
