@@ -14,8 +14,7 @@ import (
 )
 
 const twitchAuthorizeURL = "https://id.twitch.tv/oauth2/authorize"
-const twitchTokenURL = "https://id.twitch.tv/oauth2/authorize"
-const twitchValidateURL = "https://id.twitch.tv/oauth2/validate"
+const twitchTokenURL = "https://id.twitch.tv/oauth2/token"
 
 var (
 	ErrTokenRequestFailed = errors.New("token request failed with non-200 status code")
