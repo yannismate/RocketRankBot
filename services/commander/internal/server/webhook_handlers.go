@@ -85,6 +85,8 @@ func (s *server) handleWebHookChallenge(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	log.Ctx(r.Context()).Info().Str("challenge", challenge.Challenge).Msg("Received webhook challenge")
+
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(challenge.Challenge))
