@@ -28,7 +28,7 @@ func (s *server) handleAuth(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   1800,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, &cookie)
@@ -46,7 +46,7 @@ func (s *server) handleAuthBot(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   1800,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, &cookie)
