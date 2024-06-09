@@ -161,7 +161,7 @@ func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, 
 	}
 
 	if len(getConduitsRes.Data) != 1 {
-		return nil, errors.New(fmt.Sprint("expected 1 conduit IDs but got ", len(getConduitsRes.Data)))
+		return nil, errors.New(fmt.Sprint("expected 1 conduit ID after creation but got ", len(getConduitsRes.Data)))
 	}
 
 	return &getConduitsRes.Data[0].ID, nil

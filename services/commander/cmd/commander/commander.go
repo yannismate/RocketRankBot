@@ -50,9 +50,11 @@ func main() {
 	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, botInstance)
 	err = serverInstance.Start(newRootContext())
 	if err != nil {
-		log.Fatal().Err(err).Msg("HTTP Server crashed")
+		log.Fatal().Err(err).Msg("Could not start server instance!")
 		return
 	}
+
+	select {}
 }
 
 func newRootContext() context.Context {
