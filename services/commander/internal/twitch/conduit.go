@@ -64,6 +64,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 			ConduitID: conduitID,
 			Shards: []updateConduitShard{
 				{
+					ID: "0",
 					Transport: updateConduitTransport{
 						Method:   "webhook",
 						Callback: api.webHookURL,
@@ -152,7 +153,7 @@ func (api *api) createAppConduit(ctx context.Context) (*string, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, errors.New("update conduit shards: " + res.Status)
+		return nil, errors.New("create conduit: " + res.Status)
 	}
 
 	resData, err := io.ReadAll(res.Body)
@@ -236,6 +237,7 @@ type updateConduitShardsRequest struct {
 	Shards    []updateConduitShard `json:"shards"`
 }
 type updateConduitShard struct {
+	ID        string                 `json:"id"`
 	Transport updateConduitTransport `json:"transport"`
 }
 
