@@ -48,6 +48,12 @@ func (s *server) Start(ctx context.Context) error {
 
 	log.Ctx(ctx).Info().Str("bind_address", s.bindAddress).Msg("Starting HTTP server")
 
+	go func() {
+		err := s.twitch.CheckTransport(ctx)
+		if err != nil {
+			log.Ctx(ctx).Fatal().Err(err).Msg("Twitch conduit is not working as expected")
+		}
+	}()
 	err := http.ListenAndServe(s.bindAddress, WithLogging(false, mux))
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("HTTP server failed")

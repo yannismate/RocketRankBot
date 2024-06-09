@@ -4,6 +4,7 @@ import (
 	"RocketRankBot/services/commander/internal/config"
 	"RocketRankBot/services/commander/internal/db"
 	"context"
+	"github.com/rs/zerolog/log"
 	"net/url"
 )
 
@@ -17,6 +18,7 @@ type API interface {
 	BotUserCondition(broadcasterID string) BroadcasterAndUserCondition
 	EventSubTransport(ctx context.Context) (*EventSubTransportReq, error)
 	SendChatMessage(ctx context.Context, broadcasterID string, message string, replyMessageID *string) error
+	CheckTransport(ctx context.Context) error
 }
 
 type api struct {
@@ -41,4 +43,13 @@ func NewAPI(cfg *config.CommanderConfig, cache db.CacheDB) API {
 		botConduitID:  "",
 		cache:         cache,
 	}
+}
+
+func (api *api) CheckTransport(ctx context.Context) error {
+	id, err := api.getBotConduitID(ctx)
+	if err != nil {
+		return err
+	}
+	log.Ctx(ctx).Info().Str("conduit_id", *id).Msg("Twitch conduit is set up.")
+	return nil
 }
