@@ -20,7 +20,7 @@ export class TrackerGgScraper {
     private userAgent: string = "";
 
     private async start() {
-        this.browser = await puppeteer.launch({headless: true});
+        this.browser = await puppeteer.launch({ headless: true, executablePath: "/usr/bin/google-chrome" });
         this.userAgent = (await this.browser.userAgent()).replace("Headless", "");
     }
 
