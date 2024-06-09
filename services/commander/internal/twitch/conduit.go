@@ -53,6 +53,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 
+	log.Ctx(ctx).Info().Msg("Old conduit s")
 	if len(shards.Data) > 1 {
 		return nil, errors.New(fmt.Sprint("expected exactly 1 conduit shard but got  ", len(ids)))
 	}
@@ -149,6 +150,10 @@ func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, 
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != 200 {
+		return nil, errors.New(res.Status)
+	}
+
 	resData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
@@ -206,6 +211,10 @@ func (api *api) getAppConduitShards(ctx context.Context, conduitId string) (*get
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return nil, errors.New(res.Status)
+	}
 
 	resData, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -277,6 +286,10 @@ func (api *api) updateAppConduitShards(ctx context.Context, updateShardsReq upda
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != 202 {
+		return nil, errors.New(res.Status)
+	}
 
 	resData, err := io.ReadAll(res.Body)
 	if err != nil {
