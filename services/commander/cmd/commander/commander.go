@@ -9,7 +9,9 @@ import (
 	"RocketRankBot/services/commander/internal/twitch"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"context"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/twitchtv/twirp"
 	"net/http"
 	"strconv"
 )
@@ -43,9 +45,31 @@ func main() {
 	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchAPI, trackerGgScraper)
 
 	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, botInstance)
-	err = serverInstance.Start(context.Background())
+	err = serverInstance.Start(newRootContext())
 	if err != nil {
 		log.Fatal().Err(err).Msg("HTTP Server crashed")
 		return
 	}
+}
+
+func newRootContext() context.Context {
+	ctx := context.Background()
+
+	traceId := uuid.New().String()
+	spanId := uuid.New().String()
+	ctx = context.WithValue(ctx, "trace-id", traceId)
+	ctx = context.WithValue(ctx, "span-id", spanId)
+
+	ctxLogger := log.With().Str("trace-id", traceId).Str("span-id", spanId).Logger()
+	ctx = ctxLogger.WithContext(ctx)
+
+	outgoingHeaders := make(http.Header)
+	outgoingHeaders.Set("trace-id", traceId)
+	outgoingHeaders.Set("span-id", spanId)
+	ctx, err := twirp.WithHTTPRequestHeaders(ctx, outgoingHeaders)
+	if err != nil {
+		ctxLogger.Panic().Err(err)
+	}
+
+	return ctx
 }
