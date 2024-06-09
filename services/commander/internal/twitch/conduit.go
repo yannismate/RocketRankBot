@@ -57,7 +57,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		return nil, errors.New(fmt.Sprint("expected exactly 1 conduit shard but got  ", len(ids)))
 	}
 
-	if shards.Data[0].Transport.Callback != api.webHookURL || shards.Data[0].Status != "enabled" {
+	if len(shards.Data) == 0 || shards.Data[0].Transport.Callback != api.webHookURL || shards.Data[0].Status != "enabled" {
 		log.Ctx(ctx).Info().Msg("Updating conduit shard configuration...")
 		_, err := api.updateAppConduitShards(ctx, updateConduitShardsRequest{
 			ConduitID: conduitID,
