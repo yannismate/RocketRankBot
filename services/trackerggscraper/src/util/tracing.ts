@@ -39,8 +39,7 @@ export const tracingResponseSent = async (ctx: TwirpContext<Context>, res: Twirp
 }
 
 export const tracingError = async (ctx: TwirpContext<Context>, error: TwirpError) => {
-    logger.warn({
-        tracing: ctx.tracing,
+    logger.warn({...{
         error: error
-    });
+    }, ...ctx.tracing});
 }

@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import type { ByteSource, PartialDeep } from "protoscript";
-import { BinaryReader, BinaryWriter } from "protoscript";
+import * as protoscript from "protoscript";
 import { JSONrequest, PBrequest } from "twirpscript";
 // This is the minimum version supported by the current runtime.
 // If this line fails typechecking, breaking changes have been introduced and this
@@ -262,7 +262,7 @@ export const PlayerCurrentRanksReq = {
   encode: function (msg: PartialDeep<PlayerCurrentRanksReq>): Uint8Array {
     return PlayerCurrentRanksReq._writeMessage(
       msg,
-      new BinaryWriter(),
+      new protoscript.BinaryWriter(),
     ).getResultBuffer();
   },
 
@@ -272,17 +272,20 @@ export const PlayerCurrentRanksReq = {
   decode: function (bytes: ByteSource): PlayerCurrentRanksReq {
     return PlayerCurrentRanksReq._readMessage(
       PlayerCurrentRanksReq.initialize(),
-      new BinaryReader(bytes),
+      new protoscript.BinaryReader(bytes),
     );
   },
 
   /**
    * Initializes PlayerCurrentRanksReq with all fields set to their default value.
    */
-  initialize: function (): PlayerCurrentRanksReq {
+  initialize: function (
+    msg?: Partial<PlayerCurrentRanksReq>,
+  ): PlayerCurrentRanksReq {
     return {
       platform: PlayerPlatform._fromInt(0),
       identifier: "",
+      ...msg,
     };
   },
 
@@ -291,8 +294,8 @@ export const PlayerCurrentRanksReq = {
    */
   _writeMessage: function (
     msg: PartialDeep<PlayerCurrentRanksReq>,
-    writer: BinaryWriter,
-  ): BinaryWriter {
+    writer: protoscript.BinaryWriter,
+  ): protoscript.BinaryWriter {
     if (msg.platform && PlayerPlatform._toInt(msg.platform)) {
       writer.writeEnum(1, PlayerPlatform._toInt(msg.platform));
     }
@@ -307,7 +310,7 @@ export const PlayerCurrentRanksReq = {
    */
   _readMessage: function (
     msg: PlayerCurrentRanksReq,
-    reader: BinaryReader,
+    reader: protoscript.BinaryReader,
   ): PlayerCurrentRanksReq {
     while (reader.nextField()) {
       const field = reader.getFieldNumber();
@@ -337,7 +340,7 @@ export const PlayerCurrentRanksRes = {
   encode: function (msg: PartialDeep<PlayerCurrentRanksRes>): Uint8Array {
     return PlayerCurrentRanksRes._writeMessage(
       msg,
-      new BinaryWriter(),
+      new protoscript.BinaryWriter(),
     ).getResultBuffer();
   },
 
@@ -347,17 +350,20 @@ export const PlayerCurrentRanksRes = {
   decode: function (bytes: ByteSource): PlayerCurrentRanksRes {
     return PlayerCurrentRanksRes._readMessage(
       PlayerCurrentRanksRes.initialize(),
-      new BinaryReader(bytes),
+      new protoscript.BinaryReader(bytes),
     );
   },
 
   /**
    * Initializes PlayerCurrentRanksRes with all fields set to their default value.
    */
-  initialize: function (): PlayerCurrentRanksRes {
+  initialize: function (
+    msg?: Partial<PlayerCurrentRanksRes>,
+  ): PlayerCurrentRanksRes {
     return {
       displayName: "",
       ranks: [],
+      ...msg,
     };
   },
 
@@ -366,8 +372,8 @@ export const PlayerCurrentRanksRes = {
    */
   _writeMessage: function (
     msg: PartialDeep<PlayerCurrentRanksRes>,
-    writer: BinaryWriter,
-  ): BinaryWriter {
+    writer: protoscript.BinaryWriter,
+  ): protoscript.BinaryWriter {
     if (msg.displayName) {
       writer.writeString(1, msg.displayName);
     }
@@ -386,7 +392,7 @@ export const PlayerCurrentRanksRes = {
    */
   _readMessage: function (
     msg: PlayerCurrentRanksRes,
-    reader: BinaryReader,
+    reader: protoscript.BinaryReader,
   ): PlayerCurrentRanksRes {
     while (reader.nextField()) {
       const field = reader.getFieldNumber();
@@ -416,7 +422,10 @@ export const PlayerRank = {
    * Serializes PlayerRank to protobuf.
    */
   encode: function (msg: PartialDeep<PlayerRank>): Uint8Array {
-    return PlayerRank._writeMessage(msg, new BinaryWriter()).getResultBuffer();
+    return PlayerRank._writeMessage(
+      msg,
+      new protoscript.BinaryWriter(),
+    ).getResultBuffer();
   },
 
   /**
@@ -425,19 +434,20 @@ export const PlayerRank = {
   decode: function (bytes: ByteSource): PlayerRank {
     return PlayerRank._readMessage(
       PlayerRank.initialize(),
-      new BinaryReader(bytes),
+      new protoscript.BinaryReader(bytes),
     );
   },
 
   /**
    * Initializes PlayerRank with all fields set to their default value.
    */
-  initialize: function (): PlayerRank {
+  initialize: function (msg?: Partial<PlayerRank>): PlayerRank {
     return {
       playlist: RankPlaylist._fromInt(0),
       mmr: 0,
       rank: 0,
       division: 0,
+      ...msg,
     };
   },
 
@@ -446,8 +456,8 @@ export const PlayerRank = {
    */
   _writeMessage: function (
     msg: PartialDeep<PlayerRank>,
-    writer: BinaryWriter,
-  ): BinaryWriter {
+    writer: protoscript.BinaryWriter,
+  ): protoscript.BinaryWriter {
     if (msg.playlist && RankPlaylist._toInt(msg.playlist)) {
       writer.writeEnum(1, RankPlaylist._toInt(msg.playlist));
     }
@@ -466,7 +476,10 @@ export const PlayerRank = {
   /**
    * @private
    */
-  _readMessage: function (msg: PlayerRank, reader: BinaryReader): PlayerRank {
+  _readMessage: function (
+    msg: PlayerRank,
+    reader: protoscript.BinaryReader,
+  ): PlayerRank {
     while (reader.nextField()) {
       const field = reader.getFieldNumber();
       switch (field) {
@@ -662,10 +675,13 @@ export const PlayerCurrentRanksReqJSON = {
   /**
    * Initializes PlayerCurrentRanksReq with all fields set to their default value.
    */
-  initialize: function (): PlayerCurrentRanksReq {
+  initialize: function (
+    msg?: Partial<PlayerCurrentRanksReq>,
+  ): PlayerCurrentRanksReq {
     return {
       platform: PlayerPlatform._fromInt(0),
       identifier: "",
+      ...msg,
     };
   },
 
@@ -694,7 +710,7 @@ export const PlayerCurrentRanksReqJSON = {
   ): PlayerCurrentRanksReq {
     const _platform_ = json["platform"];
     if (_platform_) {
-      msg.platform = _platform_;
+      msg.platform = PlayerPlatform._fromInt(_platform_);
     }
     const _identifier_ = json["identifier"];
     if (_identifier_) {
@@ -725,10 +741,13 @@ export const PlayerCurrentRanksResJSON = {
   /**
    * Initializes PlayerCurrentRanksRes with all fields set to their default value.
    */
-  initialize: function (): PlayerCurrentRanksRes {
+  initialize: function (
+    msg?: Partial<PlayerCurrentRanksRes>,
+  ): PlayerCurrentRanksRes {
     return {
       displayName: "",
       ranks: [],
+      ...msg,
     };
   },
 
@@ -792,12 +811,13 @@ export const PlayerRankJSON = {
   /**
    * Initializes PlayerRank with all fields set to their default value.
    */
-  initialize: function (): PlayerRank {
+  initialize: function (msg?: Partial<PlayerRank>): PlayerRank {
     return {
       playlist: RankPlaylist._fromInt(0),
       mmr: 0,
       rank: 0,
       division: 0,
+      ...msg,
     };
   },
 
@@ -829,19 +849,19 @@ export const PlayerRankJSON = {
   _readMessage: function (msg: PlayerRank, json: any): PlayerRank {
     const _playlist_ = json["playlist"];
     if (_playlist_) {
-      msg.playlist = _playlist_;
+      msg.playlist = RankPlaylist._fromInt(_playlist_);
     }
     const _mmr_ = json["mmr"];
     if (_mmr_) {
-      msg.mmr = _mmr_;
+      msg.mmr = protoscript.parseNumber(_mmr_);
     }
     const _rank_ = json["rank"];
     if (_rank_) {
-      msg.rank = _rank_;
+      msg.rank = protoscript.parseNumber(_rank_);
     }
     const _division_ = json["division"];
     if (_division_) {
-      msg.division = _division_;
+      msg.division = protoscript.parseNumber(_division_);
     }
     return msg;
   },
