@@ -28,14 +28,6 @@ func (b *bot) executeCommandLeave(ctx context.Context, req *IncomingPossibleComm
 		return
 	}
 
-	for _, sub := range *subs {
-		err = b.twitchAPI.DeleteEventSubSubscription(ctx, sub.SubscriptionID)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("Could not delete user event sub")
-		}
-	}
-
-	log.Ctx(ctx).Info().Str("user_id", channelID).Msg("Finished deleting EventSub Subscriptions for user deletion.")
 	err = b.mainDB.DeleteUserData(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete user data from db")
@@ -44,4 +36,14 @@ func (b *bot) executeCommandLeave(ctx context.Context, req *IncomingPossibleComm
 	}
 
 	b.sendTwitchMessage(ctx, req.ChannelLogin, messageBotLeft, &req.MessageID)
+
+	// Delete EventSub subscriptions last to allow response to go through
+	for _, sub := range *subs {
+		err = b.twitchAPI.DeleteEventSubSubscription(ctx, sub.SubscriptionID)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("Could not delete user event sub")
+		}
+	}
+
+	log.Ctx(ctx).Info().Str("user_id", channelID).Msg("Finished deleting EventSub Subscriptions for user deletion.")
 }
