@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -186,7 +187,12 @@ func (api *api) getAppConduitShards(ctx context.Context, conduitId string) (*get
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", twitchConduitsURL+"/shards", nil)
+	reqUrl, _ := url.Parse(twitchConduitsURL + "/shards")
+	params := url.Values{}
+	params.Set("conduit_id", conduitId)
+	reqUrl.RawQuery = params.Encode()
+
+	req, err := http.NewRequest("GET", reqUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
