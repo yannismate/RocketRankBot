@@ -48,7 +48,7 @@ func (s *server) handleTwitchWebHook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	calculatedSignature := "sha256=" + s.calculateHMAC(messageID, timestamp, string(bodyData))
-	if subtle.ConstantTimeCompare([]byte(signature), []byte(calculatedSignature)) != 0 {
+	if subtle.ConstantTimeCompare([]byte(signature), []byte(calculatedSignature)) != 1 {
 		w.WriteHeader(http.StatusForbidden)
 		log.Ctx(r.Context()).Warn().Str("calculated_sig", calculatedSignature).Str("received_sig", signature).Msg("received webhook call with invalid signature")
 		return
