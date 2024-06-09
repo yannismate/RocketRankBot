@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -49,7 +50,20 @@ func (s *server) handleTwitchWebHook(w http.ResponseWriter, r *http.Request) {
 	calculatedSignature := "sha256=" + s.calculateHMAC(messageID, timestamp, string(bodyData))
 	if subtle.ConstantTimeCompare([]byte(signature), []byte(calculatedSignature)) != 0 {
 		w.WriteHeader(http.StatusForbidden)
-		log.Ctx(r.Context()).Warn().Msg("received webhook call with invalid signature")
+		log.Ctx(r.Context()).Warn().Str("calculated_sig", calculatedSignature).Str("received_sig", signature).Msg("received webhook call with invalid signature")
+		return
+	}
+
+	parsedTimestamp, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Ctx(r.Context()).Warn().Err(err).Str("timestamp", timestamp).Msg("received webhook call with invalid timestamp")
+		return
+	}
+
+	if parsedTimestamp.Before(time.Now().Add(-10 * time.Minute)) {
+		w.WriteHeader(http.StatusForbidden)
+		log.Ctx(r.Context()).Warn().Err(err).Time("timestamp", parsedTimestamp).Msg("received webhook call with outdated timestamp")
 		return
 	}
 
