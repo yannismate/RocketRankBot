@@ -87,7 +87,26 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Ctx(r.Context()).Info().Str("user_id", user.Data[0].ID).Str("user_login", user.Data[0].Login).Msg("Successfully created token for user")
+
 	ctx := context.WithoutCancel(r.Context())
+
+	_, userExists, err := s.db.FindUser(ctx, user.Data[0].ID)
+	if err != nil {
+		_, _ = io.WriteString(w, fmt.Sprint("Error saving user data. Please try again later. trace-id: ", ctx.Value("trace-id")))
+		log.Ctx(ctx).Error().Err(err).Msg("Error adding EventSub subscription to database")
+		return
+	}
+
+	if userExists {
+		// Delete old Subscriptions
+		oldSubs, err := s.db.FindEventSubSubscriptionsForTwitchUserID(ctx, user.Data[0].ID)
+		if err == nil {
+			for _, oldSub := range *oldSubs {
+				_ = s.twitch.DeleteEventSubSubscription(ctx, oldSub.SubscriptionID)
+			}
+		}
+	}
 
 	transport, err := s.twitch.EventSubTransport(ctx)
 	if err != nil {
@@ -122,13 +141,6 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, userExists, err := s.db.FindUser(ctx, user.Data[0].ID)
-	if err != nil {
-		_, _ = io.WriteString(w, fmt.Sprint("Error saving user data. Please try again later. trace-id: ", ctx.Value("trace-id")))
-		log.Ctx(ctx).Error().Err(err).Msg("Error adding EventSub subscription to database")
-		return
-	}
-
 	if !userExists {
 		err := s.db.AddUser(ctx, &db.BotUser{
 			TwitchUserID:    user.Data[0].ID,
@@ -150,4 +162,6 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(w, "Authentication succeeded! You can close this tab and continue with the setup.")
+	log.Ctx(r.Context()).Info().Str("user_id", user.Data[0].ID).Str("user_login", user.Data[0].Login).Msg("User registration completed")
+
 }
