@@ -28,7 +28,7 @@ func (api *api) GenerateAuthorizeURL(scopes []string, state string) *url.URL {
 	params.Add("client_id", api.clientID)
 	params.Add("redirect_uri", api.redirectURI)
 	params.Add("response_type", "code")
-	params.Add("scope", strings.Join(scopes, "+"))
+	params.Add("scope", strings.Join(scopes, " "))
 	params.Add("state", state)
 
 	authUrl.RawQuery = params.Encode()

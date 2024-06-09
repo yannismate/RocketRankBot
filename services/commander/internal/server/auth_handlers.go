@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"slices"
+	"strings"
 )
 
 const authStateCookieName = "twitch_oauth_state"
@@ -72,14 +73,6 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, s := range userScopes {
-		if !slices.Contains(tokenResponse.Scope, s) {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = io.WriteString(w, "Authorization is missing required scope: "+s)
-			return
-		}
-	}
-
 	user, err := s.twitch.GetOwnUser(r.Context(), tokenResponse.AccessToken)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,6 +81,16 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Ctx(r.Context()).Info().Str("user_id", user.Data[0].ID).Str("user_login", user.Data[0].Login).Msg("Successfully created token for user")
+
+	if strings.ToLower(user.Data[0].Login) != strings.ToLower(s.botTwitchUserName) {
+		for _, s := range userScopes {
+			if !slices.Contains(tokenResponse.Scope, s) {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = io.WriteString(w, "Authorization is missing required scope: "+s)
+				return
+			}
+		}
+	}
 
 	ctx := context.WithoutCancel(r.Context())
 
