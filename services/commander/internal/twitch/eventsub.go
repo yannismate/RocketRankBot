@@ -79,7 +79,7 @@ func (api *api) CreateEventSubSubscription(ctx context.Context, createSubReq Cre
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusAccepted {
 		return nil, fmt.Errorf("create event sub subscription request failed with status code %d", res.StatusCode)
 	}
 
