@@ -7,7 +7,7 @@ import (
 const (
 	messageAlreadyJoined  = "The bot has already joined your channel. You can add a rank command using !addcmd."
 	messageReAuthRequired = "The bot is already configured for your channel, but is missing permissions to send messages in your channel. Please reauthenticate: "
-	messageBotJoined      = "The bot has joined your channel. Add commands using !addcmd."
+	messageJoinAuth       = "To allow the bot to join your channel please authenticate here: "
 )
 
 func (b *bot) executeCommandJoin(ctx context.Context, req *IncomingPossibleCommand) {
@@ -27,5 +27,5 @@ func (b *bot) executeCommandJoin(ctx context.Context, req *IncomingPossibleComma
 		return
 	}
 
-	b.sendTwitchMessage(ctx, req.ChannelID, messageBotJoined, &req.MessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, messageJoinAuth+b.baseURL+"/auth", &req.MessageID)
 }
