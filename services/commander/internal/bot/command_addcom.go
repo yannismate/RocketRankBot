@@ -2,7 +2,6 @@ package bot
 
 import (
 	"RocketRankBot/services/commander/internal/db"
-	"RocketRankBot/services/commander/rpc/commander"
 	"context"
 	"github.com/rs/zerolog/log"
 	"strings"
@@ -17,53 +16,53 @@ const (
 	addcomDefaultResponseType = db.TwitchResponseTypeMessage
 )
 
-func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePossibleCommandReq) {
+func (b *bot) executeCommandAddcom(ctx context.Context, req *IncomingPossibleCommand) {
 	var channelID string
 
-	if req.TwitchChannelLogin == b.botChannelName {
-		channelID = req.TwitchSenderUserID
+	if req.ChannelID == b.botChannelID {
+		channelID = req.SenderID
 	} else {
-		channelID = req.TwitchChannelID
+		channelID = req.ChannelID
 	}
 
 	args := strings.Split(req.Command, " ")
 	if len(args) < 4 {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageAddcomUsage, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageAddcomUsage, &req.MessageID)
 		return
 	}
 
 	_, found, err := b.mainDB.FindUser(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for user")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		return
 	}
 	if !found {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageBotNotJoined, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageBotNotJoined, &req.MessageID)
 		return
 	}
 
 	commandName := strings.ToLower(args[1])
 
 	if _, ok := b.configCommands[commandName]; ok {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageCommandNameTaken, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandNameTaken, &req.MessageID)
 		return
 	}
 
 	_, found, err = b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for command")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		return
 	}
 	if found {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageCommandNameTaken, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandNameTaken, &req.MessageID)
 		return
 	}
 
 	platform := strings.ToLower(args[2])
 	if _, ok := db.AllPlatforms[platform]; !ok {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageInvalidPlatform, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageInvalidPlatform, &req.MessageID)
 		return
 	}
 
@@ -82,9 +81,9 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *commander.ExecutePo
 	err = b.mainDB.AddCommand(ctx, &cmd)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not add command to db")
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		return
 	}
 
-	b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageCommandAdded, &req.TwitchMessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, messageCommandAdded, &req.MessageID)
 }

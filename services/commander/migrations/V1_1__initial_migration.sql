@@ -1,9 +1,22 @@
 create table if not exists bot_users
 (
-    twitch_user_id varchar(36) not null,
-    twitch_login   varchar(64) not null,
+    twitch_user_id   varchar(36) not null,
+    is_authenticated boolean     not null,
     primary key (twitch_user_id)
 );
+
+create table if not exists event_sub_subscriptions
+(
+    subscription_id varchar(36) not null,
+    twitch_user_id  varchar(36) not null,
+    topic           varchar(128) not null,
+    primary key (subscription_id)
+);
+
+create index event_sub_subscriptions_twitch_user_id_idx
+    on event_sub_subscriptions
+    using hash (twitch_user_id);
+
 create table if not exists bot_commands
 (
     twitch_user_id           varchar(36) not null,

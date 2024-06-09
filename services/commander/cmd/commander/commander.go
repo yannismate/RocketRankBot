@@ -6,9 +6,9 @@ import (
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/internal/server"
-	"RocketRankBot/services/commander/rpc/commander"
+	"RocketRankBot/services/commander/internal/twitch"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
-	"RocketRankBot/services/commander/rpc/twitchconnector"
+	"context"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
@@ -37,18 +37,15 @@ func main() {
 		return mainDB.IsConnected() && cacheDB.IsConnected()
 	})
 
-	twitchConnector := twitchconnector.NewTwitchConnectorProtobufClient(cfg.Services.TwitchConnector, http.DefaultClient)
 	trackerGgScraper := trackerggscraper.NewTrackerGgScraperProtobufClient(cfg.Services.TrackerGgScraper, http.DefaultClient)
+	twitchAPI := twitch.NewAPI(cfg, cacheDB)
 
-	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchConnector, trackerGgScraper)
+	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchAPI, trackerGgScraper)
 
-	serverInstance := server.NewServer(botInstance)
-	twirpHandler := server.WithLogging(commander.NewCommanderServer(&serverInstance))
-
-	log.Info().Str("bind_address", ":"+strconv.Itoa(cfg.AppPort)).Msg("Starting twirp server")
-	err = http.ListenAndServe(":"+strconv.Itoa(cfg.AppPort), twirpHandler)
+	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, botInstance)
+	err = serverInstance.Start(context.Background())
 	if err != nil {
-		log.Fatal().Err(err).Msg("HTTP Listener error")
+		log.Fatal().Err(err).Msg("HTTP Server crashed")
 		return
 	}
 }

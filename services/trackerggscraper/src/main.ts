@@ -19,6 +19,6 @@ app.on("requestReceived", tracingRequestReceived);
 app.on("responseSent", tracingResponseSent);
 app.on("error", tracingError);
 
-createServer(app).listen(cfg.APP_PORT, () => {
-    logger.info({ msg: `App listening on ${cfg.APP_PORT}` });
+createServer(app).listen(cfg.RPC_PORT, () => {
+    logger.info({ msg: `App listening for twirp requests on :${cfg.RPC_PORT}` });
 });

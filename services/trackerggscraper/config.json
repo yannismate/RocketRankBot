@@ -1,4 +1,4 @@
 {
-  "APP_PORT": 3010,
+  "RPC_PORT": 3010,
   "ADMIN_PORT": 3011
 }

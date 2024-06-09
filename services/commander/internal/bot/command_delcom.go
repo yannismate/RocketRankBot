@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"RocketRankBot/services/commander/rpc/commander"
 	"context"
 	"github.com/rs/zerolog/log"
 	"strings"
@@ -12,18 +11,18 @@ const (
 	messageCommandDeleted = "Command successfully deleted."
 )
 
-func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePossibleCommandReq) {
+func (b *bot) executeCommandDelcom(ctx context.Context, req *IncomingPossibleCommand) {
 	var channelID string
 
-	if req.TwitchChannelLogin == b.botChannelName {
-		channelID = req.TwitchSenderUserID
+	if req.ChannelID == b.botChannelID {
+		channelID = req.SenderID
 	} else {
-		channelID = req.TwitchChannelID
+		channelID = req.ChannelID
 	}
 
 	args := strings.Split(req.Command, " ")
 	if len(args) != 2 {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageDelcomUsage, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageDelcomUsage, &req.MessageID)
 		return
 	}
 
@@ -31,19 +30,19 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePo
 
 	_, found, err := b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		log.Ctx(ctx).Error().Err(err).Msg("Could not query db for command")
 		return
 	}
 
 	if !found {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageCommandDoesNotExist, &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandDoesNotExist, &req.MessageID)
 		return
 	}
 
 	err = b.mainDB.DeleteCommand(ctx, channelID, commandName)
 	if err != nil {
-		b.sendTwitchMessage(ctx, req.TwitchChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.TwitchMessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete command from db")
 		return
 	}
@@ -53,5 +52,5 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *commander.ExecutePo
 		log.Ctx(ctx).Warn().Err(err).Msg("Could not invalidate cached command")
 	}
 
-	b.sendTwitchMessage(ctx, req.TwitchChannelLogin, messageCommandDeleted, &req.TwitchMessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, messageCommandDeleted, &req.MessageID)
 }

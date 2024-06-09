@@ -17,13 +17,16 @@ type MainDB interface {
 	IsConnected() bool
 	FindCommand(ctx context.Context, channelID string, commandName string) (*BotCommand, bool, error)
 	FindUser(ctx context.Context, twitchUserID string) (*BotUser, bool, error)
-	FindAllTwitchLogins(ctx context.Context) (*[]string, error)
 	AddUser(ctx context.Context, user *BotUser) error
 	AddCommand(ctx context.Context, cmd *BotCommand) error
 	UpdateCommand(ctx context.Context, cmd *BotCommand) error
 	DeleteCommand(ctx context.Context, channelId string, commandName string) error
-	UpdateUserLogin(ctx context.Context, twitchUserID string, twitchLogin string) error
 	DeleteUserData(ctx context.Context, twitchUserID string) error
+	FindEventSubSubscriptionsForTwitchUserID(ctx context.Context, twitchUserID string) (*[]EventSubSubscription, error)
+	AddEventSubSubscription(ctx context.Context, sub *EventSubSubscription) error
+	DeleteEventSubSubscription(ctx context.Context, subscriptionID string) error
+	FindEventSubSubscriptionByID(ctx context.Context, eventSubID string) (*EventSubSubscription, bool, error)
+	UpdateUserAuthenticationFlag(ctx context.Context, twitchUserID string, isAuthed bool) error
 }
 
 func NewMainDB(cfg *config.CommanderConfig) (MainDB, error) {

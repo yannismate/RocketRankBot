@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"io"
 	"os"
 )
@@ -9,6 +10,7 @@ import (
 type CommanderConfig struct {
 	AppPort   int
 	AdminPort int
+	BaseURL   string
 
 	DB struct {
 		Main  string
@@ -16,7 +18,6 @@ type CommanderConfig struct {
 	}
 
 	Services struct {
-		TwitchConnector  string
 		TrackerGgScraper string
 	}
 
@@ -24,8 +25,17 @@ type CommanderConfig struct {
 		Commands int
 		Ranks    int
 	}
+
+	Twitch struct {
+		ClientID      string
+		ClientSecret  string
+		BotUserID     string
+		BotUserName   string
+		WebHookSecret string
+	}
+
+	CommandPrefix         string
 	CommandTimeoutSeconds int
-	BotChannelName        string
 }
 
 func ReadConfig(path string) (*CommanderConfig, error) {
@@ -46,6 +56,16 @@ func ReadConfig(path string) (*CommanderConfig, error) {
 	err = json.Unmarshal(fileBytes, &cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	cfg.Twitch.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET")
+	if len(cfg.Twitch.ClientSecret) == 0 {
+		log.Fatal().Msg("Twitch Client Secret is empty.")
+	}
+
+	cfg.Twitch.WebHookSecret = os.Getenv("TWITCH_WEBHOOK_SECRET")
+	if len(cfg.Twitch.WebHookSecret) == 0 {
+		log.Fatal().Msg("Twitch WebHook Secret is empty.")
 	}
 
 	return &cfg, nil

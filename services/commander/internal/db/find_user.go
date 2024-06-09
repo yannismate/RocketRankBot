@@ -10,11 +10,11 @@ func (m *mainDB) FindUser(ctx context.Context, twitchUserID string) (*BotUser, b
 	bu := BotUser{}
 
 	err := m.dbPool.QueryRow(ctx, "select "+
-		"twitch_user_id, twitch_login "+
+		"twitch_user_id, is_authenticated "+
 		"from bot_users "+
 		"where "+
 		"twitch_user_id = $1;",
-		twitchUserID).Scan(&bu.TwitchUserID, &bu.TwitchLogin)
+		twitchUserID).Scan(&bu.TwitchUserID, &bu.IsAuthenticated)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

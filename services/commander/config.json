@@ -6,13 +6,17 @@
     "cache": "localhost:6379"
   },
   "services": {
-    "trackerGgScraper": "http://localhost:3010",
-    "twitchConnector": "http://localhost:3020"
+    "trackerGgScraper": "http://localhost:3010"
   },
   "ttl": {
     "commands": 600,
     "rank": 300
   },
+  "twitch": {
+    "clientId": "0dnelbg591keiwmd1ebknjw65gso51",
+    "botUserID": "788472520",
+    "botUserName": "rocketrankbot"
+  },
   "commandTimeoutSeconds": 8,
-  "botChannelName": "rocketrankbot"
+  "commandPrefix": "!"
 }
