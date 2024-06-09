@@ -44,6 +44,7 @@ func (api *api) SendChatMessage(ctx context.Context, broadcasterID string, messa
 
 	req.Header.Set("Client-Id", api.clientID)
 	req.Header.Set("Authorization", "Bearer "+*appToken)
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
 	res, err := http.DefaultClient.Do(req)

@@ -70,6 +70,7 @@ func (api *api) CreateEventSubSubscription(ctx context.Context, createSubReq Cre
 
 	req.Header.Set("Client-Id", api.clientID)
 	req.Header.Set("Authorization", "Bearer "+*appToken)
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
 	res, err := http.DefaultClient.Do(req)

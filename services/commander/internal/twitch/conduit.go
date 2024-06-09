@@ -39,7 +39,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 
 	if len(ids) == 0 {
 		log.Ctx(ctx).Info().Msg("No associated conduit found, creating new conduit...")
-		resConID, err := api.createAppConduit(ctx, 1)
+		resConID, err := api.createAppConduit(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +120,7 @@ func (api *api) getAppConduitIDs(ctx context.Context) ([]string, error) {
 	return ids, nil
 }
 
-func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, error) {
+func (api *api) createAppConduit(ctx context.Context) (*string, error) {
 	appToken, err := api.getAppToken(ctx)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, 
 
 	body := struct {
 		ShardCount int `json:"shard_count"`
-	}{shardCount}
+	}{ShardCount: 1}
 
 	bodyData, err := json.Marshal(body)
 	if err != nil {
@@ -142,6 +142,7 @@ func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, 
 
 	req.Header.Set("Client-Id", api.clientID)
 	req.Header.Set("Authorization", "Bearer "+*appToken)
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
 	res, err := http.DefaultClient.Do(req)
@@ -151,7 +152,7 @@ func (api *api) createAppConduit(ctx context.Context, shardCount int) (*string, 
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, errors.New(res.Status)
+		return nil, errors.New("update conduit shards: " + res.Status)
 	}
 
 	resData, err := io.ReadAll(res.Body)
@@ -213,7 +214,7 @@ func (api *api) getAppConduitShards(ctx context.Context, conduitId string) (*get
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, errors.New(res.Status)
+		return nil, errors.New("update conduit shards: " + res.Status)
 	}
 
 	resData, err := io.ReadAll(res.Body)
@@ -279,6 +280,7 @@ func (api *api) updateAppConduitShards(ctx context.Context, updateShardsReq upda
 
 	req.Header.Set("Client-Id", api.clientID)
 	req.Header.Set("Authorization", "Bearer "+*appToken)
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
 	res, err := http.DefaultClient.Do(req)
@@ -288,7 +290,7 @@ func (api *api) updateAppConduitShards(ctx context.Context, updateShardsReq upda
 	defer res.Body.Close()
 
 	if res.StatusCode != 202 {
-		return nil, errors.New(res.Status)
+		return nil, errors.New("update conduit shards: " + res.Status)
 	}
 
 	resData, err := io.ReadAll(res.Body)
