@@ -280,7 +280,7 @@ func (api *api) updateAppConduitShards(ctx context.Context, updateShardsReq upda
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", twitchConduitsURL+"/shards", bytes.NewReader(bodyData))
+	req, err := http.NewRequest("PATCH", twitchConduitsURL+"/shards", bytes.NewReader(bodyData))
 	if err != nil {
 		return nil, err
 	}
