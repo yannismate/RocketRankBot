@@ -18,7 +18,7 @@ type UserResponse struct {
 }
 
 func (api *api) GetOwnUser(ctx context.Context, userToken string) (*UserResponse, error) {
-	req, err := http.NewRequest("POST", twitchUserURL, nil)
+	req, err := http.NewRequest("GET", twitchUserURL, nil)
 	if err != nil {
 		return nil, err
 	}
