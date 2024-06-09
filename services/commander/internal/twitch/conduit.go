@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"time"
@@ -36,6 +37,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 	conduitID := ""
 
 	if len(ids) == 0 {
+		log.Ctx(ctx).Info().Msg("No associated conduit found, creating new conduit...")
 		resConID, err := api.createAppConduit(ctx, 1)
 		if err != nil {
 			return nil, err
@@ -55,6 +57,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 	}
 
 	if shards.Data[0].Transport.Callback != api.webHookURL || shards.Data[0].Status != "enabled" {
+		log.Ctx(ctx).Info().Msg("Updating conduit shard configuration...")
 		_, err := api.updateAppConduitShards(ctx, updateConduitShardsRequest{
 			ConduitID: conduitID,
 			Shards: []updateConduitShard{
