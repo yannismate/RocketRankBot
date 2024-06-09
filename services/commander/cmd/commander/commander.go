@@ -7,6 +7,7 @@ import (
 	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/internal/server"
 	"RocketRankBot/services/commander/internal/twitch"
+	"RocketRankBot/services/commander/internal/util"
 	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"context"
 	"github.com/google/uuid"
@@ -22,6 +23,8 @@ func main() {
 		log.Fatal().Err(err).Msg("Config could not be read")
 		return
 	}
+
+	http.DefaultClient.Transport = util.LoggingRoundTripper{}
 
 	mainDB, err := db.NewMainDB(cfg)
 	if err != nil {
