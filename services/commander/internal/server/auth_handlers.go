@@ -139,7 +139,7 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	err = s.db.AddEventSubSubscription(ctx, &dbSub)
 	if err != nil {
-		_, _ = io.WriteString(w, fmt.Sprint("Error creating saving EventSub subscription. Please try again later. trace-id: ", ctx.Value("trace-id")))
+		_, _ = io.WriteString(w, fmt.Sprint("Error saving EventSub subscription. Please try again later. trace-id: ", ctx.Value("trace-id")))
 		log.Ctx(ctx).Error().Err(err).Msg("Error adding EventSub subscription to database")
 		return
 	}
@@ -151,14 +151,14 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			_, _ = io.WriteString(w, fmt.Sprint("Error saving user data. Please try again later. trace-id: ", ctx.Value("trace-id")))
-			log.Ctx(ctx).Error().Err(err).Msg("Error adding EventSub subscription to database")
+			log.Ctx(ctx).Error().Err(err).Msg("Error adding user to database")
 			return
 		}
 	} else {
 		err := s.db.UpdateUserAuthenticationFlag(ctx, user.Data[0].ID, true)
 		if err != nil {
 			_, _ = io.WriteString(w, fmt.Sprint("Error saving user data. Please try again later. trace-id: ", ctx.Value("trace-id")))
-			log.Ctx(ctx).Error().Err(err).Msg("Error adding EventSub subscription to database")
+			log.Ctx(ctx).Error().Err(err).Msg("Error updating existing user in database")
 			return
 		}
 	}

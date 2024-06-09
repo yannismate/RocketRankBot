@@ -9,7 +9,7 @@ func (m *mainDB) UpdateUserAuthenticationFlag(ctx context.Context, twitchUserID 
 		"is_authenticated = $1 "+
 		"where "+
 		"twitch_user_id = $2;",
-		twitchUserID, isAuthed)
+		isAuthed, twitchUserID)
 
 	return err
 }
