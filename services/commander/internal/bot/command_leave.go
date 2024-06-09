@@ -35,6 +35,7 @@ func (b *bot) executeCommandLeave(ctx context.Context, req *IncomingPossibleComm
 		}
 	}
 
+	log.Ctx(ctx).Info().Str("user_id", channelID).Msg("Finished deleting EventSub Subscriptions for user deletion.")
 	err = b.mainDB.DeleteUserData(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete user data from db")
