@@ -42,7 +42,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *IncomingPossibleCom
 		return
 	}
 
-	commandName := strings.ToLower(args[1])
+	commandName := strings.TrimPrefix(strings.ToLower(args[1]), b.commandPrefix)
 
 	if _, ok := b.configCommands[commandName]; ok {
 		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandNameTaken, &req.MessageID)

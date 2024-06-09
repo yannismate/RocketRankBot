@@ -28,6 +28,7 @@ type bot struct {
 	baseURL          string
 	trackerGgScraper trackerggscraper.TrackerGgScraper
 	commandTimeout   time.Duration
+	commandPrefix    string
 	cacheTTLCommand  time.Duration
 	cacheTTLRank     time.Duration
 	botChannelID     string
@@ -54,6 +55,7 @@ func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, t
 		baseURL:          cfg.BaseURL,
 		trackerGgScraper: tgs,
 		commandTimeout:   time.Second * time.Duration(cfg.CommandTimeoutSeconds),
+		commandPrefix:    cfg.CommandPrefix,
 		cacheTTLCommand:  time.Second * time.Duration(cfg.TTL.Commands),
 		cacheTTLRank:     time.Second * time.Duration(cfg.TTL.Ranks),
 		botChannelID:     cfg.Twitch.BotUserID,

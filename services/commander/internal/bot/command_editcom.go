@@ -36,7 +36,7 @@ func (b *bot) executeCommandEditcom(ctx context.Context, req *IncomingPossibleCo
 		return
 	}
 
-	commandName := strings.ToLower(args[1])
+	commandName := strings.TrimPrefix(strings.ToLower(args[1]), b.commandPrefix)
 	property := strings.ToLower(args[2])
 
 	_, found, err := b.mainDB.FindUser(ctx, channelID)

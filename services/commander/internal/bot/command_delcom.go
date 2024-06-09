@@ -26,7 +26,7 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *IncomingPossibleCom
 		return
 	}
 
-	commandName := strings.ToLower(args[1])
+	commandName := strings.TrimPrefix(strings.ToLower(args[1]), b.commandPrefix)
 
 	_, found, err := b.mainDB.FindCommand(ctx, channelID, commandName)
 	if err != nil {
