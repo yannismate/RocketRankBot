@@ -45,6 +45,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		}
 		conduitID = *resConID
 	} else {
+		log.Ctx(ctx).Info().Str("conduit_id", ids[0]).Msg("Found existing conduit.")
 		conduitID = ids[0]
 	}
 
@@ -53,7 +54,6 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 
-	log.Ctx(ctx).Info().Msg("Old conduit s")
 	if len(shards.Data) > 1 {
 		return nil, errors.New(fmt.Sprint("expected exactly 1 conduit shard but got  ", len(ids)))
 	}
@@ -76,6 +76,8 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		log.Ctx(ctx).Info().Msg("Old conduit was already configured correctly.")
 	}
 
 	return &conduitID, nil
@@ -169,6 +171,9 @@ func (api *api) createAppConduit(ctx context.Context) (*string, error) {
 
 	if len(getConduitsRes.Data) != 1 {
 		return nil, errors.New(fmt.Sprint("expected 1 conduit ID after creation but got ", len(getConduitsRes.Data)))
+	}
+	if len(getConduitsRes.Data[0].ID) == 0 {
+		return nil, errors.New("conduit ID empty after creation")
 	}
 
 	return &getConduitsRes.Data[0].ID, nil
