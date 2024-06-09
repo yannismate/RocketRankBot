@@ -9,7 +9,9 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/twitchtv/twirp"
 	"io"
 	"net/http"
 	"strings"
@@ -197,7 +199,30 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 		MessageID:     notificationChat.Event.MessageID,
 	}
 
-	go s.bot.ExecutePossibleCommand(context.WithoutCancel(r.Context()), &ipc)
+	go s.bot.ExecutePossibleCommand(NewBotContext(r.Context()), &ipc)
+}
+
+func NewBotContext(parentContext context.Context) context.Context {
+	ctx := context.Background()
+	traceId := parentContext.Value("trace-id").(string)
+	parentSpanId := parentContext.Value("span-id").(string)
+	spanId := uuid.New().String()
+
+	ctx = context.WithValue(ctx, "trace-id", traceId)
+	ctx = context.WithValue(ctx, "parent-span-id", parentContext)
+	ctx = context.WithValue(ctx, "span-id", spanId)
+
+	ctxLogger := log.With().Str("trace-id", traceId).Str("parent-span-id", parentSpanId).Str("span-id", spanId).Logger()
+	ctx = ctxLogger.WithContext(ctx)
+
+	outgoingHeaders := make(http.Header)
+	outgoingHeaders.Set("trace-id", traceId)
+	outgoingHeaders.Set("span-id", spanId)
+	ctx, err := twirp.WithHTTPRequestHeaders(ctx, outgoingHeaders)
+	if err != nil {
+		ctxLogger.Panic().Err(err)
+	}
+	return ctx
 }
 
 func (s *server) calculateHMAC(messageID string, timestamp string, requestBody string) string {

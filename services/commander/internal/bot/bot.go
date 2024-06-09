@@ -80,7 +80,7 @@ var (
 
 func (b *bot) ExecutePossibleCommand(ctx context.Context, req *IncomingPossibleCommand) {
 	executionStartedAt := time.Now()
-	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), b.commandTimeout)
+	ctx, cancel := context.WithTimeout(ctx, b.commandTimeout)
 	defer cancel()
 
 	commandParts := strings.Split(req.Command, " ")
