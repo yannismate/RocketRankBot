@@ -10,10 +10,10 @@
   "author": "yannismate",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "guid-ts": "^1.1.2",
     "prom-client": "^15.1.0",
-    "puppeteer": "^22.3.0",
+    "puppeteer": "^22.10.0",
     "tslog": "^4.9.1",
     "twirpscript": "^0.0.69"
   },

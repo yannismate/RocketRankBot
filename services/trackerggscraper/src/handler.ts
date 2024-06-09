@@ -8,6 +8,7 @@ import {scraper, TrackerGgError} from "./scraper";
 import {rateLimiter} from "./util/ratelimiting";
 import {TwirpError} from "twirpscript";
 import {metricCounterRequestCount} from "./util/metrics";
+import {logger} from "./util/logger";
 
 const trackerGgScraper: TrackerGgScraper = {
 

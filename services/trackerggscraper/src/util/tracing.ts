@@ -6,9 +6,9 @@ import {metricResponseTime} from "./metrics";
 
 export interface Context {
     tracing: {
-        traceId: string,
-        spanId: string,
-        parentSpanId: string
+        "trace-id": string,
+        "span-id": string,
+        "parent-span-id": string
     },
     timer: (labels?: Partial<Record<any, any>>) => number
 }
@@ -20,28 +20,26 @@ export interface TwirpResponse {
 export const tracingRequestReceived = async (ctx: TwirpContext<Context>, req: ServerRequest) => {
     ctx.timer = metricResponseTime.startTimer();
     ctx.tracing = {
-        traceId: req.headers["trace-id"] as string | undefined || Guid.newGuid().toString(),
-        parentSpanId: req.headers["span-id"] as string | undefined || "",
-        spanId: Guid.newGuid().toString()
+        "trace-id": req.headers["trace-id"] as string | undefined || Guid.newGuid().toString(),
+        "parent-span-id": req.headers["span-id"] as string | undefined || "",
+        "span-id": Guid.newGuid().toString()
     };
-    logger.trace({
-        tracing: ctx.tracing,
+    logger.trace({...{
         request_method: req.method,
         request_url: req.url,
         request_headers: req.headers
-    });
+    }, ...ctx.tracing});
 }
 
 export const tracingResponseSent = async (ctx: TwirpContext<Context>, res: TwirpResponse) => {
-    logger.trace({
-        tracing: ctx.tracing,
+    logger.trace({...{
         response_status: res.statusCode
-    });
+    }, ...ctx.tracing});
     ctx.timer({ responseCode: res.statusCode });
 }
 
 export const tracingError = async (ctx: TwirpContext<Context>, error: TwirpError) => {
-    logger.trace({
+    logger.warn({
         tracing: ctx.tracing,
         error: error
     });
