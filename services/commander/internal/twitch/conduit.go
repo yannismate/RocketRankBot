@@ -214,7 +214,7 @@ func (api *api) getAppConduitShards(ctx context.Context, conduitId string) (*get
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, errors.New("update conduit shards: " + res.Status)
+		return nil, errors.New("get conduit shards: " + res.Status)
 	}
 
 	resData, err := io.ReadAll(res.Body)

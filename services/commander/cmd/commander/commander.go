@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	http.DefaultClient.Transport = util.LoggingRoundTripper{}
+	http.DefaultClient.Transport = &util.LoggingRoundTripper{}
 
 	mainDB, err := db.NewMainDB(cfg)
 	if err != nil {
