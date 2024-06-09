@@ -1,6 +1,7 @@
 package twitch
 
 import (
+	"RocketRankBot/services/commander/internal/db"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -65,6 +66,10 @@ func (api *api) GetTokenWithRefreshToken(ctx context.Context, refreshToken strin
 
 func (api *api) getAppToken(ctx context.Context) (*string, error) {
 	appState, cacheHit, err := api.cache.GetCachedAppState(ctx)
+	if appState == nil {
+		appState = &db.CachedAppState{}
+	}
+
 	if err != nil && cacheHit && len(appState.TwitchAppToken) != 0 && appState.TwitchAppTokenExpiry.After(time.Now()) {
 		return &appState.TwitchAppToken, nil
 	}
