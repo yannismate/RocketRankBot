@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
@@ -39,5 +40,7 @@ func WithLogging(isInternal bool, base http.Handler) http.Handler {
 
 		r = r.WithContext(ctx)
 		base.ServeHTTP(w, r)
+
+		log.Ctx(r.Context()).Info().Msg(fmt.Sprint("[Server] ", r.Method, " ", r.URL.String(), " - ", r.Response.StatusCode))
 	})
 }
