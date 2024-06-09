@@ -67,12 +67,16 @@ func (s *server) handleTwitchWebHook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch messageType {
-	case "challenge":
+	case "webhook_callback_verification":
 		s.handleWebHookChallenge(w, r, bodyData)
 	case "notification":
 		s.handleWebHookNotification(w, r, bodyData)
 	case "revocation":
 		s.handleWebHookRevocation(w, r, bodyData)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		log.Ctx(r.Context()).Warn().Err(err).Str("timestamp", timestamp).Msg("received validated webhook call with invalid message type")
+		return
 	}
 }
 
