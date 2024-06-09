@@ -73,8 +73,8 @@ func (s *server) handleWebHookChallenge(w http.ResponseWriter, r *http.Request, 
 	}
 
 	w.Header().Set("Content-Type", strconv.Itoa(len(challenge.Challenge)))
-	_, _ = w.Write([]byte(challenge.Challenge))
 	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(challenge.Challenge))
 }
 
 type webHookRevocation struct {

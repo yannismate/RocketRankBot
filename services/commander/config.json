@@ -1,6 +1,7 @@
 {
   "appPort": 3000,
   "adminPort": 3001,
+  "baseUrl": "https://rrb.yannismate.de",
   "db": {
     "main": "postgres://commander:commander@localhost:5432/rocketrankbot",
     "cache": "localhost:6379"

@@ -57,13 +57,13 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	stateCookie, err := r.Cookie(authStateCookieName)
 
 	if err != nil || stateCookie.Valid() != nil || len(stateCookie.Value) == 0 || r.URL.Query().Get("state") != stateCookie.Value {
-		_, _ = io.WriteString(w, "Invalid auth state, please try again.")
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = io.WriteString(w, "Invalid auth state, please try again.")
 		return
 	}
 	if r.URL.Query().Has("error") {
-		_, _ = io.WriteString(w, "Authorization denied by user.")
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = io.WriteString(w, "Authorization denied by user.")
 		return
 	}
 
@@ -74,16 +74,16 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	for _, s := range userScopes {
 		if !slices.Contains(tokenResponse.Scope, s) {
-			_, _ = io.WriteString(w, "Authorization is missing required scope: "+s)
 			w.WriteHeader(http.StatusBadRequest)
+			_, _ = io.WriteString(w, "Authorization is missing required scope: "+s)
 			return
 		}
 	}
 
 	user, err := s.twitch.GetOwnUser(r.Context(), tokenResponse.AccessToken)
 	if err != nil {
-		_, _ = io.WriteString(w, fmt.Sprint("Error getting user info from Twitch. trace-id: ", r.Context().Value("trace-id")))
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, fmt.Sprint("Error getting user info from Twitch. trace-id: ", r.Context().Value("trace-id")))
 		return
 	}
 
@@ -91,8 +91,8 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	transport, err := s.twitch.EventSubTransport(ctx)
 	if err != nil {
-		_, _ = io.WriteString(w, fmt.Sprint("Internal server error. Please try again later. trace-id: ", ctx.Value("trace-id")))
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, fmt.Sprint("Internal server error. Please try again later. trace-id: ", ctx.Value("trace-id")))
 		return
 	}
 
@@ -105,8 +105,8 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	subscriptionID, err := s.twitch.CreateEventSubSubscription(ctx, subReq)
 	if err != nil {
-		_, _ = io.WriteString(w, fmt.Sprint("Error creating Twitch EventSub subscription. Please try again later. trace-id: ", ctx.Value("trace-id")))
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, fmt.Sprint("Error creating Twitch EventSub subscription. Please try again later. trace-id: ", ctx.Value("trace-id")))
 		return
 	}
 
@@ -148,6 +148,6 @@ func (s *server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, _ = io.WriteString(w, "Authentication succeeded! You can close this tab and continue with the setup.")
 	w.WriteHeader(http.StatusOK)
+	_, _ = io.WriteString(w, "Authentication succeeded! You can close this tab and continue with the setup.")
 }
