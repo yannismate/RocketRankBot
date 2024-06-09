@@ -12,7 +12,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -86,7 +85,7 @@ func (s *server) handleWebHookChallenge(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	w.Header().Set("Content-Type", strconv.Itoa(len(challenge.Challenge)))
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(challenge.Challenge))
 }
