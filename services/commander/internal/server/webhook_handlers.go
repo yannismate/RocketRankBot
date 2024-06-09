@@ -168,8 +168,10 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 	}
 
 	command := notificationChat.Event.Message.Text
+	usedPingPrefix := false
 	if strings.HasPrefix(strings.ToLower(command), "@"+strings.ToLower(s.botTwitchUserName)+" ") {
 		command = command[(len(s.botTwitchUserName) + 2):]
+		usedPingPrefix = true
 	}
 
 	if !strings.HasPrefix(command, s.commandPrefix) {
@@ -189,14 +191,15 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 	}
 
 	ipc := bot.IncomingPossibleCommand{
-		Command:       command,
-		IsModerator:   isMod,
-		IsBroadcaster: isBroadcaster,
-		ChannelID:     notificationChat.Event.BroadcasterUserID,
-		ChannelLogin:  notificationChat.Event.BroadcasterUserLogin,
-		SenderID:      notificationChat.Event.ChatterUserID,
-		SenderLogin:   notificationChat.Event.ChatterUserLogin,
-		MessageID:     notificationChat.Event.MessageID,
+		Command:        strings.TrimPrefix(command, s.commandPrefix),
+		IsModerator:    isMod,
+		IsBroadcaster:  isBroadcaster,
+		ChannelID:      notificationChat.Event.BroadcasterUserID,
+		ChannelLogin:   notificationChat.Event.BroadcasterUserLogin,
+		SenderID:       notificationChat.Event.ChatterUserID,
+		SenderLogin:    notificationChat.Event.ChatterUserLogin,
+		MessageID:      notificationChat.Event.MessageID,
+		UsedPingPrefix: usedPingPrefix,
 	}
 
 	go s.bot.ExecutePossibleCommand(NewBotContext(r.Context()), &ipc)

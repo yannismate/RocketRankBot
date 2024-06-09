@@ -35,14 +35,15 @@ type bot struct {
 }
 
 type IncomingPossibleCommand struct {
-	Command       string
-	IsModerator   bool
-	IsBroadcaster bool
-	ChannelID     string
-	ChannelLogin  string
-	SenderID      string
-	SenderLogin   string
-	MessageID     string
+	Command        string
+	IsModerator    bool
+	IsBroadcaster  bool
+	ChannelID      string
+	ChannelLogin   string
+	SenderID       string
+	SenderLogin    string
+	MessageID      string
+	UsedPingPrefix bool
 }
 
 func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, ta twitch.API, tgs trackerggscraper.TrackerGgScraper) Bot {
@@ -87,8 +88,11 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *IncomingPossibleC
 	baseCommand := strings.ToLower(commandParts[0])
 
 	if cmdFunc, ok := b.configCommands[strings.ToLower(baseCommand)]; ok {
-		// Built-in commands can only be executed by mods/broadcasters or in the bots chat
-		if strings.ToLower(req.ChannelID) != strings.ToLower(b.botChannelID) && !req.IsModerator && !req.IsBroadcaster {
+		// Built-in commands can only be executed by mods/broadcasters using the ping prefix or in the bots chat
+		if req.ChannelID != b.botChannelID && !req.IsModerator && !req.IsBroadcaster {
+			return
+		}
+		if req.ChannelID != b.botChannelID && !req.UsedPingPrefix {
 			return
 		}
 
