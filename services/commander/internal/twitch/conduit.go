@@ -23,7 +23,7 @@ type getConduitsResponse struct {
 }
 
 func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
-	if len(api.botUserID) != 0 {
+	if len(api.botConduitID) != 0 {
 		return &api.botConduitID, nil
 	}
 
