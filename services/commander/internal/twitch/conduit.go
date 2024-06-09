@@ -96,7 +96,7 @@ func (api *api) getAppConduitIDs(ctx context.Context) ([]string, error) {
 	req.Header.Set("Authorization", "Bearer "+*appToken)
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (api *api) createAppConduit(ctx context.Context) (*string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (api *api) getAppConduitShards(ctx context.Context, conduitId string) (*get
 	req.Header.Set("Authorization", "Bearer "+*appToken)
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (api *api) updateAppConduitShards(ctx context.Context, updateShardsReq upda
 	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

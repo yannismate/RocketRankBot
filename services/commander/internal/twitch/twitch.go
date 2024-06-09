@@ -3,8 +3,10 @@ package twitch
 import (
 	"RocketRankBot/services/commander/internal/config"
 	"RocketRankBot/services/commander/internal/db"
+	"RocketRankBot/services/commander/internal/util"
 	"context"
 	"github.com/rs/zerolog/log"
+	"net/http"
 	"net/url"
 )
 
@@ -30,9 +32,14 @@ type api struct {
 	webHookSecret string
 	botConduitID  string
 	cache         db.CacheDB
+	httpClient    *http.Client
 }
 
 func NewAPI(cfg *config.CommanderConfig, cache db.CacheDB) API {
+	httpClient := &http.Client{
+		Transport: &util.LoggingRoundTripper{},
+	}
+
 	return &api{
 		clientID:      cfg.Twitch.ClientID,
 		clientSecret:  cfg.Twitch.ClientSecret,
@@ -42,6 +49,7 @@ func NewAPI(cfg *config.CommanderConfig, cache db.CacheDB) API {
 		webHookSecret: cfg.Twitch.WebHookSecret,
 		botConduitID:  "",
 		cache:         cache,
+		httpClient:    httpClient,
 	}
 }
 

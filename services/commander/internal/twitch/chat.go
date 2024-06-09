@@ -47,7 +47,7 @@ func (api *api) SendChatMessage(ctx context.Context, broadcasterID string, messa
 	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return err
 	}

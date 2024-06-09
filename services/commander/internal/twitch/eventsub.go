@@ -73,7 +73,7 @@ func (api *api) CreateEventSubSubscription(ctx context.Context, createSubReq Cre
 	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (api *api) DeleteEventSubSubscription(ctx context.Context, subscriptionID s
 	req.Header.Set("Authorization", "Bearer "+*appToken)
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return err
 	}

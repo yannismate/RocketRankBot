@@ -27,7 +27,7 @@ func (api *api) GetOwnUser(ctx context.Context, userToken string) (*UserResponse
 	req.Header.Set("Authorization", "Bearer "+userToken)
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

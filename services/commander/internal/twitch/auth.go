@@ -51,7 +51,7 @@ func (api *api) GetTokenWithCode(ctx context.Context, code string) (*TokenRespon
 	params.Add("grant_type", "authorization_code")
 	params.Add("redirect_uri", api.redirectURI)
 
-	return doTokenRequest(ctx, params)
+	return api.doTokenRequest(ctx, params)
 }
 
 func (api *api) GetTokenWithRefreshToken(ctx context.Context, refreshToken string) (*TokenResponse, error) {
@@ -61,7 +61,7 @@ func (api *api) GetTokenWithRefreshToken(ctx context.Context, refreshToken strin
 	params.Add("grant_type", "refresh_token")
 	params.Add("refresh_token", refreshToken)
 
-	return doTokenRequest(ctx, params)
+	return api.doTokenRequest(ctx, params)
 }
 
 func (api *api) getAppToken(ctx context.Context) (*string, error) {
@@ -80,7 +80,7 @@ func (api *api) getAppToken(ctx context.Context) (*string, error) {
 	params.Add("client_secret", api.clientSecret)
 	params.Add("grant_type", "client_credentials")
 
-	res, err := doTokenRequest(ctx, params)
+	res, err := api.doTokenRequest(ctx, params)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not fetch Twitch app token!")
 		return nil, err
@@ -95,7 +95,7 @@ func (api *api) getAppToken(ctx context.Context) (*string, error) {
 	return &res.AccessToken, nil
 }
 
-func doTokenRequest(ctx context.Context, params url.Values) (*TokenResponse, error) {
+func (api *api) doTokenRequest(ctx context.Context, params url.Values) (*TokenResponse, error) {
 	req, err := http.NewRequest("POST", twitchTokenURL, bytes.NewBufferString(params.Encode()))
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func doTokenRequest(ctx context.Context, params url.Values) (*TokenResponse, err
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req = req.WithContext(ctx)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
