@@ -86,12 +86,15 @@ func (api *api) getAppToken(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 
-	log.Ctx(ctx).Info().Msg("New app token acquired, updating cache")
 	appState.TwitchAppToken = res.AccessToken
 	appState.TwitchAppTokenExpiry = time.Now().Add(time.Second * time.Duration(res.ExpiresIn))
-	_ = api.cache.SetCachedAppState(ctx, appState)
-
-	log.Ctx(ctx).Info().Msg("App token written to cache.")
+	log.Ctx(ctx).Info().Time("expiry", appState.TwitchAppTokenExpiry).Msg("New app token acquired, updating cache")
+	err = api.cache.SetCachedAppState(ctx, *appState)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("App token could not be written to cache.")
+	} else {
+		log.Ctx(ctx).Info().Msg("App token written to cache.")
+	}
 	return &res.AccessToken, nil
 }
 

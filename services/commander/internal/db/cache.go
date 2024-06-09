@@ -27,7 +27,7 @@ type CacheDB interface {
 	SetCachedCommand(ctx context.Context, channelID string, commandName string, cachedCmd *CachedCommand, ttl time.Duration) error
 	SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *trackerggscraper.PlayerCurrentRanksRes, ttl time.Duration) error
 	InvalidateCachedCommand(ctx context.Context, channelID string, commandName string) error
-	SetCachedAppState(ctx context.Context, cachedAppState *CachedAppState) error
+	SetCachedAppState(ctx context.Context, cachedAppState CachedAppState) error
 	GetCachedAppState(ctx context.Context) (*CachedAppState, bool, error)
 }
 

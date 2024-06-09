@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-func (c *cacheDB) SetCachedAppState(ctx context.Context, cachedAppState *CachedAppState) error {
+func (c *cacheDB) SetCachedAppState(ctx context.Context, cachedAppState CachedAppState) error {
 	jsonBytes, err := json.Marshal(cachedAppState)
 	if err != nil {
 		return err
