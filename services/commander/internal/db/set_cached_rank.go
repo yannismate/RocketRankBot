@@ -15,6 +15,6 @@ func (c *cacheDB) SetCachedRank(ctx context.Context, platform RLPlatform, identi
 		return err
 	}
 
-	c.client.Set(ctx, cacheKey, string(jsonBytes), ttl)
-	return nil
+	err = c.client.Set(ctx, cacheKey, string(jsonBytes), ttl).Err()
+	return err
 }

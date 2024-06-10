@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	cachePrefixCommands = "command"
-	cachePrefixRanks    = "rank"
-	cacheKeyAppState    = "appstate"
+	cachePrefixCommands    = "command"
+	cachePrefixRanks       = "rank"
+	cachePrefixEventSubMsg = "eventsubmsg"
+	cacheKeyAppState       = "appstate"
 )
 
 type cacheDB struct {
@@ -29,6 +30,8 @@ type CacheDB interface {
 	InvalidateCachedCommand(ctx context.Context, channelID string, commandName string) error
 	SetCachedAppState(ctx context.Context, cachedAppState CachedAppState) error
 	GetCachedAppState(ctx context.Context) (*CachedAppState, bool, error)
+	AddCachedEventSubMsg(ctx context.Context, messageID string) error
+	HasCachedEventSubMsg(ctx context.Context, messageID string) (bool, error)
 }
 
 func NewCache(cfg *config.CommanderConfig) (CacheDB, error) {

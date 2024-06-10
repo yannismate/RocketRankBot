@@ -14,6 +14,6 @@ func (c *cacheDB) SetCachedCommand(ctx context.Context, channelID string, comman
 		return err
 	}
 
-	c.client.Set(ctx, cacheKey, string(jsonBytes), ttl)
-	return nil
+	err = c.client.Set(ctx, cacheKey, string(jsonBytes), ttl).Err()
+	return err
 }

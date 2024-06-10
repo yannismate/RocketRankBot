@@ -11,6 +11,6 @@ func (c *cacheDB) SetCachedAppState(ctx context.Context, cachedAppState CachedAp
 		return err
 	}
 
-	c.client.Set(ctx, cacheKeyAppState, string(jsonBytes), 0)
-	return nil
+	err = c.client.Set(ctx, cacheKeyAppState, string(jsonBytes), 0).Err()
+	return err
 }

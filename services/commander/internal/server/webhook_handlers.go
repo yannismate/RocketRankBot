@@ -132,7 +132,6 @@ func (s *server) handleWebHookRevocation(w http.ResponseWriter, r *http.Request,
 		log.Ctx(r.Context()).Error().Err(err).Msg("could not update user flag after eventsub subcription deletion")
 		return
 	}
-
 }
 
 type webHookNotificationChat struct {
@@ -153,19 +152,30 @@ type webHookNotificationChat struct {
 
 func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Request, bodyData []byte) {
 	subscriptionType := r.Header.Get(headerEventSubSubscriptionType)
+	messageID := r.Header.Get(headerEventSubMessageID)
+
 	if subscriptionType != twitch.EventSubTypeChatMessage {
 		// ignore non-chat subscriptions for now
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
+	alreadyHandled, err := s.cache.HasCachedEventSubMsg(r.Context(), messageID)
+	if err != nil && alreadyHandled {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	notificationChat := webHookNotificationChat{}
 
-	err := json.Unmarshal(bodyData, &notificationChat)
+	err = json.Unmarshal(bodyData, &notificationChat)
 	if err != nil {
 		log.Ctx(r.Context()).Warn().Err(err).Msg("could not parse webhook chat notification")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 
 	command := notificationChat.Event.Message.Text
 	usedPingPrefix := false
@@ -202,7 +212,10 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 		UsedPingPrefix: usedPingPrefix,
 	}
 
-	go s.bot.ExecutePossibleCommand(NewBotContext(r.Context()), &ipc)
+	botContext := NewBotContext(r.Context())
+
+	go s.bot.ExecutePossibleCommand(botContext, &ipc)
+	_ = s.cache.AddCachedEventSubMsg(botContext, messageID)
 }
 
 func NewBotContext(parentContext context.Context) context.Context {

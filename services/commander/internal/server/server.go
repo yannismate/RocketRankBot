@@ -21,18 +21,20 @@ type server struct {
 	twitch              twitch.API
 	twitchWebhookSecret string
 	db                  db.MainDB
+	cache               db.CacheDB
 	bot                 bot.Bot
 	commandPrefix       string
 	botTwitchUserName   string
 }
 
-func NewServer(cfg *config.CommanderConfig, twitchAPI twitch.API, mainDB db.MainDB, bot bot.Bot) Server {
+func NewServer(cfg *config.CommanderConfig, twitchAPI twitch.API, mainDB db.MainDB, cacheDB db.CacheDB, bot bot.Bot) Server {
 	return &server{
 		bindAddress:         ":" + strconv.Itoa(cfg.AppPort),
 		baseUrl:             cfg.BaseURL,
 		twitch:              twitchAPI,
 		twitchWebhookSecret: cfg.Twitch.WebHookSecret,
 		db:                  mainDB,
+		cache:               cacheDB,
 		bot:                 bot,
 		commandPrefix:       cfg.CommandPrefix,
 		botTwitchUserName:   cfg.Twitch.BotUserName,

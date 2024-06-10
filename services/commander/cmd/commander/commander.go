@@ -44,7 +44,7 @@ func main() {
 
 	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchAPI, trackerGgScraper)
 
-	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, botInstance)
+	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, cacheDB, botInstance)
 	err = serverInstance.Start(newRootContext())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not start server instance!")
