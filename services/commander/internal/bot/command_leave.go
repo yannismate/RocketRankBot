@@ -11,31 +11,31 @@ func (b *bot) executeCommandLeave(ctx context.Context, req *IncomingPossibleComm
 	channelID := req.SenderID
 
 	if req.ChannelID != b.botChannelID && !req.IsBroadcaster {
-		b.sendTwitchMessage(ctx, req.ChannelLogin, messageBroadcasterOnly, &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageBroadcasterOnly, &req.MessageID)
 		return
 	}
 
 	_, found, err := b.mainDB.FindUser(ctx, channelID)
 	if !found {
-		b.sendTwitchMessage(ctx, req.ChannelLogin, messageBotNotJoined, &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, messageBotNotJoined, &req.MessageID)
 		return
 	}
 
 	subs, err := b.mainDB.FindEventSubSubscriptionsForTwitchUserID(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not get event sub data from db")
-		b.sendTwitchMessage(ctx, req.ChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		return
 	}
 
 	err = b.mainDB.DeleteUserData(ctx, channelID)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("Could not delete user data from db")
-		b.sendTwitchMessage(ctx, req.ChannelLogin, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, getMessageInternalErrorWithCtx(ctx), &req.MessageID)
 		return
 	}
 
-	b.sendTwitchMessage(ctx, req.ChannelLogin, messageBotLeft, &req.MessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, messageBotLeft, &req.MessageID)
 
 	// Delete EventSub subscriptions last to allow response to go through
 	for _, sub := range *subs {
