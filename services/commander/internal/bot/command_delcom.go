@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	messageDelcomUsage    = "Unexpected Arguments. Usage: !addcom [command] [platform] [username]"
+	messageDelcomUsage    = "Unexpected Arguments. Usage: !delcom [command]"
 	messageCommandDeleted = "Command successfully deleted."
 )
 

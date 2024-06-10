@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	messageEditcomUsage          = "Unexpected Arguments. Usage: !editcom [command] [property] [values...]"
+	messageEditcomUsage          = "Unexpected Arguments. Usage: !editcom [command] [account/action/cooldown/format] [values...]"
 	messageEditcomAccountUsage   = "Unexpected Arguments. Usage: !editcom [command] account [platform] [username]"
 	messageEditcomActionUsage    = "Unexpected Arguments. Usage: !editcom [command] action [reply action]"
 	messageEditcomCooldownUsage  = "Unexpected Arguments. Usage: !editcom [command] cooldown [seconds]"
