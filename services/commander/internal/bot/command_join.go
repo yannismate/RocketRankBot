@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	messageAlreadyJoined  = "The bot has already joined your channel. You can add a rank command using !addcmd."
+	messageAlreadyJoined  = "The bot has already joined your channel. You can add a rank command using !addcom."
 	messageReAuthRequired = "The bot is already configured for your channel, but is missing permissions to send messages in your channel. Please reauthenticate: "
 	messageJoinAuth       = "To allow the bot to join your channel please authenticate here: "
 )
