@@ -7,7 +7,7 @@ import (
 )
 
 func (c *cacheDB) SetCachedCommand(ctx context.Context, channelID string, commandName string, cachedCmd *CachedCommand, ttl time.Duration) error {
-	cacheKey := cachePrefixRanks + ":" + channelID + ":" + commandName
+	cacheKey := cachePrefixCommands + ":" + channelID + ":" + commandName
 
 	jsonBytes, err := json.Marshal(cachedCmd)
 	if err != nil {
