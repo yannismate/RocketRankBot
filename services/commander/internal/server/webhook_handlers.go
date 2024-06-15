@@ -2,6 +2,7 @@ package server
 
 import (
 	"RocketRankBot/services/commander/internal/bot"
+	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/internal/twitch"
 	"context"
 	"crypto/hmac"
@@ -175,6 +176,7 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	metrics.CounterWebHookNotifications.Inc()
 	w.WriteHeader(http.StatusNoContent)
 
 	command := notificationChat.Event.Message.Text

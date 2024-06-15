@@ -6,6 +6,10 @@ import (
 )
 
 var (
+	CounterWebHookNotifications = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "commander_webhook_notifications",
+		Help: "Number of received valid webhook notifications",
+	})
 	CounterExecutedCommandsBuiltin = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "commander_commands_builtin_total",
 		Help: "Number of executed builtin commands",

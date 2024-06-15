@@ -41,6 +41,6 @@ func WithLogging(isInternal bool, base http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 		base.ServeHTTP(w, r)
 
-		log.Ctx(r.Context()).Info().Msg(fmt.Sprint("[Server] ", r.Method, " ", r.URL.String()))
+		log.Ctx(r.Context()).Trace().Msg(fmt.Sprint("[Server] ", r.Method, " ", r.URL.String()))
 	})
 }
