@@ -7,8 +7,6 @@ import (
 )
 
 func (m *mainDB) FindUserCommands(ctx context.Context, channelID string) (*[]BotCommand, error) {
-	bc := BotCommand{}
-
 	rows, err := m.dbPool.Query(ctx, "select "+
 		"command_name, command_cooldown_seconds, message_format, "+
 		"twitch_user_id, twitch_response_type, rl_platform, rl_username "+
@@ -29,8 +27,8 @@ func (m *mainDB) FindUserCommands(ctx context.Context, channelID string) (*[]Bot
 	var commands []BotCommand
 	for rows.Next() {
 		cmd := BotCommand{}
-		err = rows.Scan(&bc.CommandName, &bc.CommandCooldownSeconds, &bc.MessageFormat, &bc.TwitchUserID,
-			&bc.TwitchResponseType, &bc.RLPlatform, &bc.RLUsername)
+		err = rows.Scan(&cmd.CommandName, &cmd.CommandCooldownSeconds, &cmd.MessageFormat, &cmd.TwitchUserID,
+			&cmd.TwitchResponseType, &cmd.RLPlatform, &cmd.RLUsername)
 		if err != nil {
 			return nil, err
 		}

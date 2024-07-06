@@ -47,10 +47,11 @@ func (b *bot) executeCommandListcom(ctx context.Context, req *IncomingPossibleCo
 		if len(resMsg)+len(cmd.CommandName)+3 > 500 {
 			b.sendTwitchMessage(ctx, req.ChannelID, resMsg, &req.MessageID)
 			resMsg = ""
-			firstCmdInList = false
+			firstCmdInList = true
 		}
 		if firstCmdInList {
 			resMsg += "!" + cmd.CommandName
+			firstCmdInList = false
 		} else {
 			resMsg += ", !" + cmd.CommandName
 		}
