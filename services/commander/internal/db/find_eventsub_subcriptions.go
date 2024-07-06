@@ -37,6 +37,10 @@ func (m *mainDB) FindEventSubSubscriptionsForTwitchUserID(ctx context.Context, t
 		"event_sub_subscriptions "+
 		"where twitch_user_id = $1;", twitchUserID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			rows.Close()
+			return nil, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()

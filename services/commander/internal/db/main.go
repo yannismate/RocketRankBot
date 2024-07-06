@@ -16,6 +16,7 @@ type mainDB struct {
 type MainDB interface {
 	IsConnected() bool
 	FindCommand(ctx context.Context, channelID string, commandName string) (*BotCommand, bool, error)
+	FindUserCommands(ctx context.Context, channelID string) (*[]BotCommand, error)
 	FindUser(ctx context.Context, twitchUserID string) (*BotUser, bool, error)
 	AddUser(ctx context.Context, user *BotUser) error
 	AddCommand(ctx context.Context, cmd *BotCommand) error
