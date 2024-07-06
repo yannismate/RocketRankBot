@@ -34,6 +34,8 @@ type CommanderConfig struct {
 		WebHookSecret string
 	}
 
+	AdminUserIDs []string
+
 	CommandPrefix         string
 	CommandTimeoutSeconds int
 }

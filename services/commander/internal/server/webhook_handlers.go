@@ -15,6 +15,7 @@ import (
 	"github.com/twitchtv/twirp"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -206,6 +207,7 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 		Command:        strings.TrimPrefix(command, s.commandPrefix),
 		IsModerator:    isMod,
 		IsBroadcaster:  isBroadcaster,
+		IsAdmin:        slices.Contains(s.adminsUserIDs, notificationChat.Event.ChatterUserID),
 		ChannelID:      notificationChat.Event.BroadcasterUserID,
 		ChannelLogin:   notificationChat.Event.BroadcasterUserLogin,
 		SenderID:       notificationChat.Event.ChatterUserID,

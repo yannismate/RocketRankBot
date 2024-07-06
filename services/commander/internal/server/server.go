@@ -25,6 +25,7 @@ type server struct {
 	bot                 bot.Bot
 	commandPrefix       string
 	botTwitchUserName   string
+	adminsUserIDs       []string
 }
 
 func NewServer(cfg *config.CommanderConfig, twitchAPI twitch.API, mainDB db.MainDB, cacheDB db.CacheDB, bot bot.Bot) Server {
@@ -38,6 +39,7 @@ func NewServer(cfg *config.CommanderConfig, twitchAPI twitch.API, mainDB db.Main
 		bot:                 bot,
 		commandPrefix:       cfg.CommandPrefix,
 		botTwitchUserName:   cfg.Twitch.BotUserName,
+		adminsUserIDs:       cfg.AdminUserIDs,
 	}
 }
 

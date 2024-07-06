@@ -39,6 +39,7 @@ type IncomingPossibleCommand struct {
 	Command        string
 	IsModerator    bool
 	IsBroadcaster  bool
+	IsAdmin        bool
 	ChannelID      string
 	ChannelLogin   string
 	SenderID       string
@@ -91,7 +92,7 @@ func (b *bot) ExecutePossibleCommand(ctx context.Context, req *IncomingPossibleC
 
 	if cmdFunc, ok := b.configCommands[strings.ToLower(baseCommand)]; ok {
 		// Built-in commands can only be executed by mods/broadcasters using the ping prefix or in the bots chat
-		if req.ChannelID != b.botChannelID && !req.IsModerator && !req.IsBroadcaster {
+		if req.ChannelID != b.botChannelID && !req.IsModerator && !req.IsBroadcaster && !req.IsAdmin {
 			return
 		}
 		if req.ChannelID != b.botChannelID && !req.UsedPingPrefix {

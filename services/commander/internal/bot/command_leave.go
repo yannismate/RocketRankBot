@@ -10,7 +10,7 @@ const messageBotLeft = "The bot has left your channel."
 func (b *bot) executeCommandLeave(ctx context.Context, req *IncomingPossibleCommand) {
 	channelID := req.SenderID
 
-	if req.ChannelID != b.botChannelID && !req.IsBroadcaster {
+	if req.ChannelID != b.botChannelID && !req.IsBroadcaster && !req.IsAdmin {
 		b.sendTwitchMessage(ctx, req.ChannelID, messageBroadcasterOnly, &req.MessageID)
 		return
 	}

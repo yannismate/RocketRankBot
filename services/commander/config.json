@@ -18,6 +18,7 @@
     "botUserID": "788472520",
     "botUserName": "rocketrankbot"
   },
+  "adminUserIds": ["71601484"],
   "commandTimeoutSeconds": 8,
   "commandPrefix": "!"
 }
