@@ -67,7 +67,7 @@ func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, t
 		"addcom":  b.executeCommandAddcom,
 		"delcom":  b.executeCommandDelcom,
 		"editcom": b.executeCommandEditcom,
-		// TODO: listcom
+		"listcom": b.executeCommandListcom,
 	}
 
 	return &b
