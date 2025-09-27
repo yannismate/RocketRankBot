@@ -16,6 +16,7 @@ var (
 		"1": trackerggscraper.RankPlaylist_RANKED_1V1,
 		"2": trackerggscraper.RankPlaylist_RANKED_2V2,
 		"3": trackerggscraper.RankPlaylist_RANKED_3V3,
+		"4": trackerggscraper.RankPlaylist_RANKED_4V4,
 		"h": trackerggscraper.RankPlaylist_HOOPS,
 		"r": trackerggscraper.RankPlaylist_RUMBLE,
 		"d": trackerggscraper.RankPlaylist_DROPSHOT,

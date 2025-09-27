@@ -132,6 +132,7 @@ const playlistMapping = new Map<number, RankPlaylist>([
     [10, RankPlaylist.RANKED_1V1],
     [11, RankPlaylist.RANKED_2V2],
     [13, RankPlaylist.RANKED_3V3],
+    [61, RankPlaylist.RANKED_4V4],
     [27, RankPlaylist.HOOPS],
     [28, RankPlaylist.RUMBLE],
     [29, RankPlaylist.DROPSHOT],
