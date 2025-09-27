@@ -1,6 +1,6 @@
 module RocketRankBot/services/commander
 
-go 1.23.0
+go 1.25.1
 
 require (
 	github.com/google/uuid v1.6.0
@@ -9,7 +9,7 @@ require (
 	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rs/zerolog v1.32.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.36.9
 )
 
 require (
