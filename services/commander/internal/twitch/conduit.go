@@ -80,6 +80,7 @@ func (api *api) getBotConduitID(ctx context.Context) (*string, error) {
 		log.Ctx(ctx).Info().Msg("Old conduit was already configured correctly.")
 	}
 
+	api.botConduitID = conduitID
 	return &conduitID, nil
 }
 
