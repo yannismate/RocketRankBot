@@ -24,6 +24,7 @@ enum RankPlaylist {
     SNOWDAY = 7;
     TOURNAMENTS = 8;
     RANKED_4V4 = 9;
+    HEATSEEKER = 10;
 }
 
 message PlayerCurrentRanksReq {

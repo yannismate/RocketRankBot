@@ -47,6 +47,13 @@ export class TrackerGgScraper {
                 displayName: parsedResponse.data.platformInfo.platformUserHandle,
                     ranks: parsedResponse.data.segments
                 .filter(s => s.type == "playlist" && s.attributes.playlistId != undefined)
+                .filter(s => {
+                        if (playlistMapping.get(s.attributes.playlistId!) == undefined) {
+                            logger.warn({ msg: "Received unknown playlist in response: " + s.attributes.playlistId })
+                            return false;
+                        }
+                        return true;
+                    })
                 .map(s => {
                     const playlist = playlistMapping.get(s.attributes.playlistId!);
                     if (playlist == undefined) {
@@ -80,7 +87,7 @@ export class TrackerGgScraper {
         let content = "";
 
         try {
-            await page.setUserAgent(this.userAgent);
+            await page.setUserAgent({ userAgent: this.userAgent });
             await page.setExtraHTTPHeaders({
                 'Origin': 'https://rocketleague.tracker.network',
                 'Referer': 'https://rocketleague.tracker.network/'
@@ -137,5 +144,6 @@ const playlistMapping = new Map<number, RankPlaylist>([
     [28, RankPlaylist.RUMBLE],
     [29, RankPlaylist.DROPSHOT],
     [30, RankPlaylist.SNOWDAY],
+    [63, RankPlaylist.HEATSEEKER],
     [34, RankPlaylist.TOURNAMENTS]
 ]);

@@ -22,6 +22,7 @@ var (
 		"d": trackerggscraper.RankPlaylist_DROPSHOT,
 		"s": trackerggscraper.RankPlaylist_SNOWDAY,
 		"t": trackerggscraper.RankPlaylist_TOURNAMENTS,
+		"b": trackerggscraper.RankPlaylist_HEATSEEKER,
 	}
 	ranksS = map[int]string{
 		0: "UR", 1: "B1", 2: "B2", 3: "B3", 4: "S1", 5: "S2", 6: "S3", 7: "G1", 8: "G2", 9: "G3",

@@ -27,7 +27,8 @@ export type RankPlaylist =
   | "DROPSHOT"
   | "SNOWDAY"
   | "TOURNAMENTS"
-  | "RANKED_4V4";
+  | "RANKED_4V4"
+  | "HEATSEEKER";
 
 export interface PlayerCurrentRanksReq {
   platform: PlayerPlatform;
@@ -179,6 +180,7 @@ export const RankPlaylist = {
   SNOWDAY: "SNOWDAY",
   TOURNAMENTS: "TOURNAMENTS",
   RANKED_4V4: "RANKED_4V4",
+  HEATSEEKER: "HEATSEEKER",
   /**
    * @private
    */
@@ -213,6 +215,9 @@ export const RankPlaylist = {
       }
       case 9: {
         return "RANKED_4V4";
+      }
+      case 10: {
+        return "HEATSEEKER";
       }
       // unknown values are preserved as numbers. this occurs when new enum values are introduced and the generated code is out of date.
       default: {
@@ -254,6 +259,9 @@ export const RankPlaylist = {
       }
       case "RANKED_4V4": {
         return 9;
+      }
+      case "HEATSEEKER": {
+        return 10;
       }
       // unknown values are preserved as numbers. this occurs when new enum values are introduced and the generated code is out of date.
       default: {
@@ -585,6 +593,7 @@ export const RankPlaylistJSON = {
   SNOWDAY: "SNOWDAY",
   TOURNAMENTS: "TOURNAMENTS",
   RANKED_4V4: "RANKED_4V4",
+  HEATSEEKER: "HEATSEEKER",
   /**
    * @private
    */
@@ -619,6 +628,9 @@ export const RankPlaylistJSON = {
       }
       case 9: {
         return "RANKED_4V4";
+      }
+      case 10: {
+        return "HEATSEEKER";
       }
       // unknown values are preserved as numbers. this occurs when new enum values are introduced and the generated code is out of date.
       default: {
@@ -660,6 +672,9 @@ export const RankPlaylistJSON = {
       }
       case "RANKED_4V4": {
         return 9;
+      }
+      case "HEATSEEKER": {
+        return 10;
       }
       // unknown values are preserved as numbers. this occurs when new enum values are introduced and the generated code is out of date.
       default: {
