@@ -10,14 +10,15 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
-	"github.com/twitchtv/twirp"
 	"io"
 	"net/http"
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/twitchtv/twirp"
 )
 
 const (
@@ -196,6 +197,9 @@ func (s *server) handleWebHookNotification(w http.ResponseWriter, r *http.Reques
 
 	for _, badge := range notificationChat.Event.Badges {
 		if badge.SetID == "moderator" {
+			isMod = true
+		}
+		if badge.SetID == "lead_moderator" {
 			isMod = true
 		}
 		if badge.SetID == "broadcaster" {
