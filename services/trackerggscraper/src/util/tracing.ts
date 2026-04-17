@@ -1,4 +1,13 @@
-import {ServerRequest, TwirpContext} from "twirpscript/dist/runtime/server";
+export interface ServerRequest {
+    headers: Record<string, string | string[] | undefined>;
+    method?: string;
+    url?: string;
+}
+
+export type TwirpContext<ContextExt = unknown> = ContextExt & {
+    contentType?: "JSON" | "Protobuf" | "Unknown";
+    [key: string]: any;
+};
 import { Guid } from 'guid-ts';
 import { logger } from './logger'
 import {TwirpError} from "twirpscript";
