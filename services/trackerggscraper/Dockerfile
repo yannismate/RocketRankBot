@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS build-env
+FROM node:24-bookworm-slim AS build-env
 
 RUN apt-get update \
     && apt-get install -y wget gnupg \
@@ -9,7 +9,7 @@ RUN apt-get update \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-ENV PUPPETEER_SKIP_DOWNLOAD true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
