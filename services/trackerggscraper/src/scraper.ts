@@ -10,6 +10,8 @@ export enum TrackerGgError {
 }
 type TrackerGgResult = PlayerCurrentRanksRes | TrackerGgError;
 
+const MAX_BROWSER_AGE = 60*60*24;
+
 const buildUrl = (platform: string, user: string) => {
     return `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${encodeURIComponent(user)}`;
 }
@@ -17,14 +19,25 @@ const buildUrl = (platform: string, user: string) => {
 export class TrackerGgScraper {
 
     private browser: Browser | undefined;
+    private browserStartedAt: Date | undefined;
     private userAgent: string = "";
 
     private async start() {
         this.browser = await puppeteer.launch({ headless: true, executablePath: "/usr/bin/google-chrome" });
+        this.browserStartedAt = new Date();
         this.userAgent = (await this.browser.userAgent()).replace("Headless", "");
     }
 
     async fetchRankData(platform: string, user: string) : Promise<TrackerGgResult> {
+        if (!this.browser?.connected || (this.browserStartedAt?.getDate() ?? 0) < new Date().getDate() - MAX_BROWSER_AGE) {
+            logger.info({ msg: "Starting new browser instance" });
+            try {
+                await this.browser?.close();
+            } catch (err) {
+                logger.warn({ msg: "Failed to close old browser instance", error: err })
+            }
+            await this.start();
+        }
         const text = await this.fetchRankPageText(platform, user);
         if (text.includes("You are being rate limited")) {
             return TrackerGgError.CLOUDFLARE_BLOCK;
