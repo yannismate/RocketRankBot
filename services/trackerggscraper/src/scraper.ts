@@ -1,6 +1,7 @@
 import puppeteer, {Browser} from 'puppeteer';
 import {PlayerCurrentRanksRes, RankPlaylist} from "./protos/trackerggscraper.pb";
 import {logger} from "./util/logger";
+import {shutdown} from "./shutdown";
 
 export enum TrackerGgError {
     PLAYER_NOT_FOUND,
@@ -21,6 +22,7 @@ export class TrackerGgScraper {
     private browser: Browser | undefined;
     private browserStartedAt: Date | undefined;
     private userAgent: string = "";
+    private consecutiveParsingErrors: number = 0;
 
     private async start() {
         this.browser = await puppeteer.launch({ headless: true, executablePath: "/usr/bin/google-chrome" });
@@ -29,15 +31,6 @@ export class TrackerGgScraper {
     }
 
     async fetchRankData(platform: string, user: string) : Promise<TrackerGgResult> {
-        if (!this.browser?.connected || (this.browserStartedAt?.getDate() ?? 0) < new Date().getDate() - MAX_BROWSER_AGE) {
-            logger.info({ msg: "Starting new browser instance" });
-            try {
-                await this.browser?.close();
-            } catch (err) {
-                logger.warn({ msg: "Failed to close old browser instance", error: err })
-            }
-            await this.start();
-        }
         const text = await this.fetchRankPageText(platform, user);
         if (text.includes("You are being rate limited")) {
             return TrackerGgError.CLOUDFLARE_BLOCK;
@@ -51,8 +44,20 @@ export class TrackerGgScraper {
             parsedResponse = JSON.parse(text);
         } catch (err) {
             logger.warn({ msg: "Could not parse response JSON", error: err })
+            this.consecutiveParsingErrors++;
+            if (this.consecutiveParsingErrors == 15) {
+                // Force browser restart
+                logger.warn({ msg: "Too many consecutive parsing errors, forcing browser restart." });
+                await this.browser?.close();
+                this.browser = undefined;
+            } else if (this.consecutiveParsingErrors >= 18) {
+                logger.error({ msg: "Too many consecutive parsing errors, forcing container restart." });
+                shutdown(-1);
+            }
             return TrackerGgError.PARSING_ERROR;
         }
+
+        this.consecutiveParsingErrors = 0;
 
         let responseObj: PlayerCurrentRanksRes;
         try {
@@ -90,8 +95,18 @@ export class TrackerGgScraper {
 
     private async fetchRankPageText(platform: string, user: string): Promise<string> {
         if (this.browser == undefined) {
+            logger.info({ msg: "Starting initial browser instance" });
+            await this.start();
+        } else if (!this.browser?.connected || (this.browserStartedAt?.getDate() ?? 0) < new Date().getDate() - MAX_BROWSER_AGE) {
+            logger.info({ msg: "Starting new browser instance" });
+            try {
+                await this.browser?.close();
+            } catch (err) {
+                logger.warn({ msg: "Failed to close old browser instance", error: err })
+            }
             await this.start();
         }
+
         if (this.browser == undefined) {
             throw Error("browser not available");
         }
