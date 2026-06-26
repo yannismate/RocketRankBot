@@ -10,6 +10,7 @@ import {
     tracingResponseSent
 } from "./util/tracing";
 import {logger} from "./util/logger";
+import {registerShutdown} from "./shutdown";
 
 startMetricsServer();
 
@@ -19,6 +20,19 @@ app.on("requestReceived", tracingRequestReceived);
 app.on("responseSent", tracingResponseSent);
 app.on("error", tracingError);
 
-createServer(app).listen(cfg.RPC_PORT, () => {
+const server = createServer(app);
+registerShutdown((exitCode: number) => {
+    logger.info({ msg: `Stopping HTTP server due to error...` });
+    server.close(() => {
+        logger.info({ msg: `Server closed, exiting.` });
+        process.exitCode = exitCode;
+    });
+    setTimeout(() => {
+        logger.error({ msg: `Shutdown failed, forcing process exit.` });
+        process.exit(exitCode);
+    }, 10000).unref();
+});
+
+server.listen(cfg.RPC_PORT, () => {
     logger.info({ msg: `App listening for twirp requests on :${cfg.RPC_PORT}` });
 });
