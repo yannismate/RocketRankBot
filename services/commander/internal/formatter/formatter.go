@@ -10,19 +10,19 @@ import (
 
 var (
 	tokenMatcher          = regexp.MustCompile("\\$\\(((\\w|\\.)+)\\)")
-	tokenExtractor        = regexp.MustCompile("^([u123hrdst])\\.([rdm])\\.?([sml])?$")
+	tokenExtractor        = regexp.MustCompile("^([[:alnum:]]{1,2})\\.([rdm])\\.?([sml])?$")
 	playlistAbbreviations = map[string]trackerggscraper.RankPlaylist{
-		"u": trackerggscraper.RankPlaylist_UNRANKED,
-		"1": trackerggscraper.RankPlaylist_RANKED_1V1,
-		"2": trackerggscraper.RankPlaylist_RANKED_2V2,
-		"3": trackerggscraper.RankPlaylist_RANKED_3V3,
-		"4": trackerggscraper.RankPlaylist_RANKED_4V4,
-		"h": trackerggscraper.RankPlaylist_HOOPS,
-		"r": trackerggscraper.RankPlaylist_RUMBLE,
-		"d": trackerggscraper.RankPlaylist_DROPSHOT,
-		"s": trackerggscraper.RankPlaylist_SNOWDAY,
-		"t": trackerggscraper.RankPlaylist_TOURNAMENTS,
-		"b": trackerggscraper.RankPlaylist_HEATSEEKER,
+		"u":  trackerggscraper.RankPlaylist_UNRANKED,
+		"1":  trackerggscraper.RankPlaylist_RANKED_1V1,
+		"2":  trackerggscraper.RankPlaylist_RANKED_2V2,
+		"3":  trackerggscraper.RankPlaylist_RANKED_3V3,
+		"4":  trackerggscraper.RankPlaylist_RANKED_4V4,
+		"h":  trackerggscraper.RankPlaylist_HOOPS,
+		"r":  trackerggscraper.RankPlaylist_RUMBLE,
+		"d":  trackerggscraper.RankPlaylist_DROPSHOT,
+		"s":  trackerggscraper.RankPlaylist_SNOWDAY,
+		"t":  trackerggscraper.RankPlaylist_TOURNAMENTS,
+		"hs": trackerggscraper.RankPlaylist_HEATSEEKER,
 	}
 	ranksS = map[int]string{
 		0: "UR", 1: "B1", 2: "B2", 3: "B3", 4: "S1", 5: "S2", 6: "S3", 7: "G1", 8: "G2", 9: "G3",
@@ -99,7 +99,11 @@ func evalToken(rankData *trackerggscraper.PlayerCurrentRanksRes, token string) s
 		return "$(" + string(token) + ")"
 	}
 
-	playlist := playlistAbbreviations[matches[0][1]]
+	playlist, ok := playlistAbbreviations[matches[0][1]]
+	if !ok {
+		return "$(" + token + ")"
+	}
+
 	stat := matches[0][2]
 	modifier := matches[0][3]
 
