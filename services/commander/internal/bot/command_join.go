@@ -2,12 +2,13 @@ package bot
 
 import (
 	"context"
+	"fmt"
 )
 
 const (
-	messageAlreadyJoined  = "The bot has already joined your channel. You can add a rank command using !addcom."
-	messageReAuthRequired = "The bot is already configured for your channel, but is missing permissions to send messages in your channel. Please reauthenticate: "
-	messageJoinAuth       = "To allow the bot to join your channel please authenticate here: "
+	messageAlreadyJoined  = "The bot is already in your channel. You can add a rank command using !addcom."
+	messageReAuthRequired = "The bot is already configured for your channel, but is missing permissions to send messages. Please reauthenticate: %s"
+	messageJoinAuth       = "To allow the bot to join your channel please authenticate here: %s"
 )
 
 func (b *bot) executeCommandJoin(ctx context.Context, req *IncomingPossibleCommand) {
@@ -20,12 +21,12 @@ func (b *bot) executeCommandJoin(ctx context.Context, req *IncomingPossibleComma
 	dbUser, found, _ := b.mainDB.FindUser(ctx, channelID)
 	if found {
 		if !dbUser.IsAuthenticated {
-			b.sendTwitchMessage(ctx, req.ChannelID, messageReAuthRequired+b.baseURL+"/auth", &req.MessageID)
+			b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageReAuthRequired, b.baseURL+"/auth"), &req.MessageID)
 			return
 		}
 		b.sendTwitchMessage(ctx, req.ChannelID, messageAlreadyJoined, &req.MessageID)
 		return
 	}
 
-	b.sendTwitchMessage(ctx, req.ChannelID, messageJoinAuth+b.baseURL+"/auth", &req.MessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageJoinAuth, b.baseURL+"/auth"), &req.MessageID)
 }
