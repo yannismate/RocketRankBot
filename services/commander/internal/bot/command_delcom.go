@@ -2,13 +2,15 @@ package bot
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
 	messageDelcomUsage    = "Unexpected Arguments. Usage: !delcom [command]"
-	messageCommandDeleted = "Command successfully deleted."
+	messageCommandDeleted = "Command '%s' successfully deleted."
 )
 
 func (b *bot) executeCommandDelcom(ctx context.Context, req *IncomingPossibleCommand) {
@@ -52,5 +54,5 @@ func (b *bot) executeCommandDelcom(ctx context.Context, req *IncomingPossibleCom
 		log.Ctx(ctx).Warn().Err(err).Msg("Could not invalidate cached command")
 	}
 
-	b.sendTwitchMessage(ctx, req.ChannelID, messageCommandDeleted, &req.MessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageCommandDeleted, commandName), &req.MessageID)
 }

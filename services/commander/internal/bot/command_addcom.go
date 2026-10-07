@@ -3,14 +3,16 @@ package bot
 import (
 	"RocketRankBot/services/commander/internal/db"
 	"context"
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
 	messageAddcomUsage        = "Unexpected Arguments. Usage: !addcom [command] [platform] [username]"
-	messageCommandNameTaken   = "This command name is already in use."
-	messageCommandAdded       = "Command successfully added!"
+	messageCommandNameTaken   = "The command name '%s' is already in use."
+	messageCommandAdded       = "Command '%s' successfully added!"
 	addcomDefaultFormat       = "Ranked 1v1: $(1.r) Div $(1.d) ($(1.m)) | Ranked 2v2: $(2.r) Div $(2.d) ($(2.m)) | Ranked 3v3: $(3.r) Div $(3.d) ($(3.m))"
 	addcomDefaultCooldown     = 10
 	addcomDefaultResponseType = db.TwitchResponseTypeMessage
@@ -45,7 +47,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *IncomingPossibleCom
 	commandName := strings.TrimPrefix(strings.ToLower(args[1]), b.commandPrefix)
 
 	if _, ok := b.configCommands[commandName]; ok {
-		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandNameTaken, &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageCommandNameTaken, commandName), &req.MessageID)
 		return
 	}
 
@@ -56,7 +58,7 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *IncomingPossibleCom
 		return
 	}
 	if found {
-		b.sendTwitchMessage(ctx, req.ChannelID, messageCommandNameTaken, &req.MessageID)
+		b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageCommandNameTaken, commandName), &req.MessageID)
 		return
 	}
 
@@ -85,5 +87,5 @@ func (b *bot) executeCommandAddcom(ctx context.Context, req *IncomingPossibleCom
 		return
 	}
 
-	b.sendTwitchMessage(ctx, req.ChannelID, messageCommandAdded, &req.MessageID)
+	b.sendTwitchMessage(ctx, req.ChannelID, fmt.Sprintf(messageCommandAdded, commandName), &req.MessageID)
 }
