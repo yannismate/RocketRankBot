@@ -35,6 +35,9 @@ export class TrackerGgScraper {
         if (text.includes("You are being rate limited")) {
             return TrackerGgError.CLOUDFLARE_BLOCK;
         }
+        if (text.includes("You are making too many requests")) {
+            return TrackerGgError.CLOUDFLARE_BLOCK;
+        }
         if (text.includes("CollectorResultStatus::NotFound")) {
             return TrackerGgError.PLAYER_NOT_FOUND;
         }
