@@ -5,16 +5,16 @@ import (
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/internal/formatter"
 	"RocketRankBot/services/commander/internal/metrics"
+	"RocketRankBot/services/commander/internal/tracker"
 	"RocketRankBot/services/commander/internal/twitch"
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"bytes"
 	"context"
 	"errors"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rs/zerolog/log"
-	"github.com/twitchtv/twirp"
 	"strings"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 type Bot interface {
@@ -22,17 +22,17 @@ type Bot interface {
 }
 
 type bot struct {
-	mainDB           db.MainDB
-	cacheDB          db.CacheDB
-	twitchAPI        twitch.API
-	baseURL          string
-	trackerGgScraper trackerggscraper.TrackerGgScraper
-	commandTimeout   time.Duration
-	commandPrefix    string
-	cacheTTLCommand  time.Duration
-	cacheTTLRank     time.Duration
-	botChannelID     string
-	configCommands   map[string]func(ctx context.Context, req *IncomingPossibleCommand)
+	mainDB          db.MainDB
+	cacheDB         db.CacheDB
+	twitchAPI       twitch.API
+	baseURL         string
+	tracker         *tracker.Client
+	commandTimeout  time.Duration
+	commandPrefix   string
+	cacheTTLCommand time.Duration
+	cacheTTLRank    time.Duration
+	botChannelID    string
+	configCommands  map[string]func(ctx context.Context, req *IncomingPossibleCommand)
 }
 
 type IncomingPossibleCommand struct {
@@ -48,18 +48,18 @@ type IncomingPossibleCommand struct {
 	UsedPingPrefix bool
 }
 
-func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, ta twitch.API, tgs trackerggscraper.TrackerGgScraper) Bot {
+func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, ta twitch.API, ranks *tracker.Client) Bot {
 	b := bot{
-		mainDB:           mainDB,
-		cacheDB:          cacheDB,
-		twitchAPI:        ta,
-		baseURL:          cfg.BaseURL,
-		trackerGgScraper: tgs,
-		commandTimeout:   time.Second * time.Duration(cfg.CommandTimeoutSeconds),
-		commandPrefix:    cfg.CommandPrefix,
-		cacheTTLCommand:  time.Second * time.Duration(cfg.TTL.Commands),
-		cacheTTLRank:     time.Second * time.Duration(cfg.TTL.Ranks),
-		botChannelID:     cfg.Twitch.BotUserID,
+		mainDB:          mainDB,
+		cacheDB:         cacheDB,
+		twitchAPI:       ta,
+		baseURL:         cfg.BaseURL,
+		tracker:         ranks,
+		commandTimeout:  time.Second * time.Duration(cfg.CommandTimeoutSeconds),
+		commandPrefix:   cfg.CommandPrefix,
+		cacheTTLCommand: time.Second * time.Duration(cfg.TTL.Commands),
+		cacheTTLRank:    time.Second * time.Duration(cfg.TTL.Ranks),
+		botChannelID:    cfg.Twitch.BotUserID,
 	}
 	b.configCommands = map[string]func(ctx context.Context, req *IncomingPossibleCommand){
 		"join":    b.executeCommandJoin,
@@ -72,15 +72,6 @@ func NewBot(mainDB db.MainDB, cacheDB db.CacheDB, cfg *config.CommanderConfig, t
 
 	return &b
 }
-
-var (
-	platformDBToProtoMapping = map[db.RLPlatform]trackerggscraper.PlayerPlatform{
-		db.RLPlatformEpic:  trackerggscraper.PlayerPlatform_EPIC,
-		db.RLPlatformSteam: trackerggscraper.PlayerPlatform_STEAM,
-		db.RLPlatformPS:    trackerggscraper.PlayerPlatform_PSN,
-		db.RLPlatformXbox:  trackerggscraper.PlayerPlatform_XBL,
-	}
-)
 
 func (b *bot) ExecutePossibleCommand(ctx context.Context, req *IncomingPossibleCommand) {
 	executionStartedAt := time.Now()
@@ -189,35 +180,37 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 	}
 
 	if !wasCached {
-		rankReq := trackerggscraper.PlayerCurrentRanksReq{
-			Platform:   platformDBToProtoMapping[platform],
-			Identifier: identifier,
+		rankContext := ctx
+		if deadline, ok := ctx.Deadline(); ok {
+			var cancel context.CancelFunc
+			rankContext, cancel = context.WithDeadline(ctx, deadline.Add(-2*time.Second))
+			defer cancel()
 		}
-		rankRes, err = b.trackerGgScraper.PlayerCurrentRanks(ctx, &rankReq)
+		rankRes, err = b.tracker.GetRanks(rankContext, string(platform), identifier)
 		if err != nil {
-			var twirpErr twirp.Error
-			if errors.As(err, &twirpErr) {
-				if twirpErr.Code() == twirp.ResourceExhausted {
-					log.Ctx(ctx).Info().Err(err).Msg("Rank service is rate limited")
-					return messageRateLimited
-				} else if twirpErr.Code() == twirp.NotFound {
-					notFoundStruct := struct {
-						PlayerName     string
-						PlayerPlatform string
-					}{
-						PlayerName:     identifier,
-						PlayerPlatform: string(platform),
-					}
-					var notFoundMessageBuf bytes.Buffer
-					err = templateMessageNotFound.Execute(&notFoundMessageBuf, notFoundStruct)
-					if err != nil {
-						log.Ctx(ctx).Error().Err(err).Msg("Error executing not found template")
-						return getMessageInternalErrorWithCtx(ctx)
-					}
-					return notFoundMessageBuf.String()
+			if errors.Is(err, tracker.ErrUnavailable) {
+				log.Ctx(ctx).Warn().Err(err).Msg("Rank lookup temporarily unavailable")
+				return messageRanksUnavailable
+			} else if errors.Is(err, tracker.ErrRateLimited) {
+				log.Ctx(ctx).Info().Err(err).Msg("Rank service is rate limited")
+				return messageRateLimited
+			} else if errors.Is(err, tracker.ErrNotFound) {
+				notFoundStruct := struct {
+					PlayerName     string
+					PlayerPlatform string
+				}{
+					PlayerName:     identifier,
+					PlayerPlatform: string(platform),
 				}
+				var notFoundMessageBuf bytes.Buffer
+				err = templateMessageNotFound.Execute(&notFoundMessageBuf, notFoundStruct)
+				if err != nil {
+					log.Ctx(ctx).Error().Err(err).Msg("Error executing not found template")
+					return getMessageInternalErrorWithCtx(ctx)
+				}
+				return notFoundMessageBuf.String()
 			}
-			log.Ctx(ctx).Error().Err(err).Msg("Error getting ranks from scraping service")
+			log.Ctx(ctx).Error().Err(err).Msg("Error getting ranks from Tracker")
 			return getMessageInternalErrorWithCtx(ctx)
 		}
 

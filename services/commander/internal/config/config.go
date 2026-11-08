@@ -2,9 +2,10 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/rs/zerolog/log"
 	"io"
 	"os"
+
+	"github.com/rs/zerolog/log"
 )
 
 type CommanderConfig struct {
@@ -17,8 +18,9 @@ type CommanderConfig struct {
 		Cache string
 	}
 
-	Services struct {
-		TrackerGgScraper string
+	FlareSolverr struct {
+		URL                  string
+		SessionMaxAgeSeconds int
 	}
 
 	TTL struct {

@@ -8,6 +8,7 @@ import (
 
 const (
 	messageRateLimited         = "Player rank could not be fetched due to rate limiting. Please try again later."
+	messageRanksUnavailable    = "Player ranks are temporarily unavailable. Please try again shortly."
 	messageBroadcasterOnly     = "This command can only be executed by the broadcaster."
 	messageChannelNameUpdate   = "Your name has changed, the bot has joined your channel under the new name. All commands were transferred."
 	messageBotNotJoined        = "The bot is not in your channel."

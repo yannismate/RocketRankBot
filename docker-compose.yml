@@ -2,6 +2,18 @@ version: '3.9'
 
 services:
 
+  flaresolverr:
+    image: yannismate/rrb-flaresolverr:latest
+    build:
+      context: ./services/flaresolverr
+    environment:
+      LANG: en-US
+    ports:
+      - "127.0.0.1:8191:8191"
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=512M,mode=1777
+
   maindb:
     image: postgres:16
     ports:

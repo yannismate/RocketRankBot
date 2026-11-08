@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
+	"RocketRankBot/services/commander/internal/tracker"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,18 +11,18 @@ import (
 var (
 	tokenMatcher          = regexp.MustCompile("\\$\\(((\\w|\\.)+)\\)")
 	tokenExtractor        = regexp.MustCompile("^([[:alnum:]]{1,2})\\.([rdm])\\.?([sml])?$")
-	playlistAbbreviations = map[string]trackerggscraper.RankPlaylist{
-		"u":  trackerggscraper.RankPlaylist_UNRANKED,
-		"1":  trackerggscraper.RankPlaylist_RANKED_1V1,
-		"2":  trackerggscraper.RankPlaylist_RANKED_2V2,
-		"3":  trackerggscraper.RankPlaylist_RANKED_3V3,
-		"4":  trackerggscraper.RankPlaylist_RANKED_4V4,
-		"h":  trackerggscraper.RankPlaylist_HOOPS,
-		"r":  trackerggscraper.RankPlaylist_RUMBLE,
-		"d":  trackerggscraper.RankPlaylist_DROPSHOT,
-		"s":  trackerggscraper.RankPlaylist_SNOWDAY,
-		"t":  trackerggscraper.RankPlaylist_TOURNAMENTS,
-		"hs": trackerggscraper.RankPlaylist_HEATSEEKER,
+	playlistAbbreviations = map[string]tracker.Playlist{
+		"u":  tracker.Unranked,
+		"1":  tracker.Ranked1v1,
+		"2":  tracker.Ranked2v2,
+		"3":  tracker.Ranked3v3,
+		"4":  tracker.Ranked4v4,
+		"h":  tracker.Hoops,
+		"r":  tracker.Rumble,
+		"d":  tracker.Dropshot,
+		"s":  tracker.Snowday,
+		"t":  tracker.Tournaments,
+		"hs": tracker.Heatseeker,
 	}
 	ranksS = map[int]string{
 		0: "UR", 1: "B1", 2: "B2", 3: "B3", 4: "S1", 5: "S2", 6: "S3", 7: "G1", 8: "G2", 9: "G3",
@@ -46,7 +46,7 @@ var (
 	}
 )
 
-func FormatRankString(rankData *trackerggscraper.PlayerCurrentRanksRes, formatString string) string {
+func FormatRankString(rankData *tracker.Ranks, formatString string) string {
 	var result strings.Builder
 
 	matchesBytes := tokenMatcher.FindAllStringIndex(formatString, -1)
@@ -89,7 +89,7 @@ func FormatRankString(rankData *trackerggscraper.PlayerCurrentRanksRes, formatSt
 	return result.String()
 }
 
-func evalToken(rankData *trackerggscraper.PlayerCurrentRanksRes, token string) string {
+func evalToken(rankData *tracker.Ranks, token string) string {
 	if token == "name" {
 		return rankData.DisplayName
 	}
