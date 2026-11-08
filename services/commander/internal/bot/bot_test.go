@@ -35,7 +35,7 @@ func TestRankMessageWithoutSessions(t *testing.T) {
 		cached *tracker.Ranks
 		want   string
 	}{
-		{"uncached", nil, "Player ranks are temporarily unavailable. Please try again shortly."},
+		{"uncached", nil, messageRateLimited},
 		{"cached", &tracker.Ranks{DisplayName: "Player"}, "Player"},
 	} {
 		t.Run(check.name, func(t *testing.T) {
