@@ -190,7 +190,7 @@ func (b *bot) getRankMessage(ctx context.Context, platform db.RLPlatform, identi
 		if err != nil {
 			if errors.Is(err, tracker.ErrUnavailable) {
 				log.Ctx(ctx).Warn().Err(err).Msg("Rank lookup temporarily unavailable")
-				return messageRanksUnavailable
+				return messageRateLimited
 			} else if errors.Is(err, tracker.ErrRateLimited) {
 				log.Ctx(ctx).Info().Err(err).Msg("Rank service is rate limited")
 				return messageRateLimited
