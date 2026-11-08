@@ -27,7 +27,8 @@ const (
 	maxSessionRequests     = 100
 	maxConsecutiveFailures = 3
 	requestTimeout         = 60 * time.Second
-	httpTimeout            = 70 * time.Second
+	embeddedRequestTimeout = 120 * time.Second
+	httpTimeout            = embeddedRequestTimeout + 10*time.Second
 	maintenanceInterval    = time.Second
 )
 
@@ -411,7 +412,7 @@ func (client *Client) get(ctx context.Context, sessionID, target string) (*respo
 
 func (client *Client) getEmbedded(ctx context.Context, sessionID, target, probeURL string) (*response, error) {
 	return client.call(ctx, map[string]any{
-		"cmd": "request.get", "session": sessionID, "url": target, "maxTimeout": requestTimeout.Milliseconds(),
+		"cmd": "request.get", "session": sessionID, "url": target, "maxTimeout": embeddedRequestTimeout.Milliseconds(),
 		"embeddedTurnstile": map[string]any{"probeUrl": probeURL, "dismissConsent": true},
 	})
 }
@@ -432,6 +433,10 @@ func (client *Client) call(ctx context.Context, payload map[string]any) (*respon
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
+		var failure response
+		if err := json.NewDecoder(io.LimitReader(res.Body, 64*1024)).Decode(&failure); err == nil && failure.Message != "" {
+			return nil, fmt.Errorf("%w: FlareSolverr HTTP status %d: %s", errHTTP, res.StatusCode, failure.Message)
+		}
 		return nil, fmt.Errorf("%w: FlareSolverr HTTP status %d", errHTTP, res.StatusCode)
 	}
 	var result response

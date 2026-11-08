@@ -124,7 +124,7 @@ func TestSessions(t *testing.T) {
 }
 
 func TestWardenRecovery(t *testing.T) {
-	for _, outcome := range []string{"success", "not_found", "still_challenged", "solver_error"} {
+	for _, outcome := range []string{"success", "not_found", "still_challenged", "solver_error", "solver_timeout"} {
 		t.Run(outcome, func(t *testing.T) {
 			challenge := `{"errors":[{"code":"Warden::Challenge","message":"Solve captcha"}]}`
 			apiCalls, recoveryCalls := 0, 0
@@ -148,6 +148,11 @@ func TestWardenRecovery(t *testing.T) {
 					}
 					if outcome == "solver_error" {
 						fmt.Fprint(writer, `{"status":"error","message":"unresolved Turnstile"}`)
+						return
+					}
+					if outcome == "solver_timeout" {
+						writer.WriteHeader(http.StatusInternalServerError)
+						fmt.Fprint(writer, `{"status":"error","message":"Error solving the challenge. Timeout after 120.0 seconds."}`)
 						return
 					}
 					body = "<html><body>Tracker</body></html>"
@@ -183,6 +188,9 @@ func TestWardenRecovery(t *testing.T) {
 				}
 			} else if err == nil || current.recoveryURL == "" || current.failures != 2 || current.prewarmed {
 				t.Fatalf("failed recovery released session: %+v, %v", current, err)
+			}
+			if outcome == "solver_timeout" && (!errors.Is(err, errHTTP) || !strings.Contains(err.Error(), "Timeout after 120.0 seconds")) {
+				t.Fatalf("solver timeout detail was lost: %v", err)
 			}
 		})
 	}
@@ -557,6 +565,35 @@ func metricSnapshot(t *testing.T, metric prometheus.Metric) *dto.Metric {
 		t.Fatal(err)
 	}
 	return value
+}
+
+func TestRequestTimeoutBudgets(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+		var request struct {
+			MaxTimeout        int64
+			EmbeddedTurnstile map[string]any
+		}
+		json.NewDecoder(req.Body).Decode(&request)
+		want := requestTimeout.Milliseconds()
+		if request.EmbeddedTurnstile != nil {
+			want = embeddedRequestTimeout.Milliseconds()
+		}
+		if request.MaxTimeout != want {
+			t.Errorf("maxTimeout = %d, want %d", request.MaxTimeout, want)
+		}
+		fmt.Fprint(writer, `{"status":"ok"}`)
+	}))
+	defer server.Close()
+	client := &Client{endpoint: server.URL, http: server.Client()}
+	if _, err := client.get(context.Background(), "session", profileURL+"epic/player"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.getEmbedded(context.Background(), "session", homeURL, interactionsURL); err != nil {
+		t.Fatal(err)
+	}
+	if requestTimeout != 60*time.Second || embeddedRequestTimeout != 120*time.Second || httpTimeout <= embeddedRequestTimeout {
+		t.Fatal("ordinary and background timeout budgets are not separated")
+	}
 }
 
 func TestRequestMetrics(t *testing.T) {
