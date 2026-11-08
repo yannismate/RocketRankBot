@@ -1,13 +1,13 @@
 package db
 
 import (
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
+	"RocketRankBot/services/commander/internal/tracker"
 	"context"
 	"encoding/json"
 	"time"
 )
 
-func (c *cacheDB) SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *trackerggscraper.PlayerCurrentRanksRes, ttl time.Duration) error {
+func (c *cacheDB) SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *tracker.Ranks, ttl time.Duration) error {
 	cacheKey := cachePrefixRanks + ":" + string(platform) + ":" + identifier
 
 	jsonBytes, err := json.Marshal(res)

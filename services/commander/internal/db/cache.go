@@ -2,11 +2,12 @@ package db
 
 import (
 	"RocketRankBot/services/commander/internal/config"
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
+	"RocketRankBot/services/commander/internal/tracker"
 	"context"
+	"time"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
-	"time"
 )
 
 const (
@@ -24,9 +25,9 @@ type cacheDB struct {
 type CacheDB interface {
 	IsConnected() bool
 	FindCachedCommand(ctx context.Context, channelID string, commandName string) (*CachedCommand, bool, error)
-	FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*trackerggscraper.PlayerCurrentRanksRes, bool, error)
+	FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*tracker.Ranks, bool, error)
 	SetCachedCommand(ctx context.Context, channelID string, commandName string, cachedCmd *CachedCommand, ttl time.Duration) error
-	SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *trackerggscraper.PlayerCurrentRanksRes, ttl time.Duration) error
+	SetCachedRank(ctx context.Context, platform RLPlatform, identifier string, res *tracker.Ranks, ttl time.Duration) error
 	InvalidateCachedCommand(ctx context.Context, channelID string, commandName string) error
 	SetCachedAppState(ctx context.Context, cachedAppState CachedAppState) error
 	GetCachedAppState(ctx context.Context) (*CachedAppState, bool, error)

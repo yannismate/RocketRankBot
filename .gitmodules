@@ -1,0 +1,3 @@
+[submodule "services/flaresolverr"]
+	path = services/flaresolverr
+	url = https://github.com/yannismate/FlareSolverr.git

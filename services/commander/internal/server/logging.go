@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/twitchtv/twirp"
-	"net/http"
 )
 
 func WithLogging(isInternal bool, base http.Handler) http.Handler {
@@ -29,14 +29,6 @@ func WithLogging(isInternal bool, base http.Handler) http.Handler {
 
 		ctxLogger := log.With().Str("trace-id", traceId).Str("parent-span-id", parentSpanId).Str("span-id", spanId).Logger()
 		ctx = ctxLogger.WithContext(ctx)
-
-		outgoingHeaders := make(http.Header)
-		outgoingHeaders.Set("trace-id", traceId)
-		outgoingHeaders.Set("span-id", spanId)
-		ctx, err := twirp.WithHTTPRequestHeaders(ctx, outgoingHeaders)
-		if err != nil {
-			ctxLogger.Panic().Err(err)
-		}
 
 		r = r.WithContext(ctx)
 		base.ServeHTTP(w, r)

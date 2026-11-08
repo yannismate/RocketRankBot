@@ -1,14 +1,15 @@
 package db
 
 import (
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
+	"RocketRankBot/services/commander/internal/tracker"
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/redis/go-redis/v9"
 )
 
-func (c *cacheDB) FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*trackerggscraper.PlayerCurrentRanksRes, bool, error) {
+func (c *cacheDB) FindCachedRank(ctx context.Context, platform RLPlatform, identifier string) (*tracker.Ranks, bool, error) {
 	cachedString, err := c.client.Get(ctx, cachePrefixRanks+":"+string(platform)+":"+identifier).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -17,7 +18,7 @@ func (c *cacheDB) FindCachedRank(ctx context.Context, platform RLPlatform, ident
 		return nil, false, err
 	}
 
-	cc := trackerggscraper.PlayerCurrentRanksRes{}
+	cc := tracker.Ranks{}
 
 	err = json.Unmarshal([]byte(cachedString), &cc)
 	if err != nil {

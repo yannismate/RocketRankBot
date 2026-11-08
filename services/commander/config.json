@@ -6,8 +6,9 @@
     "main": "postgres://commander:commander@localhost:5432/rocketrankbot",
     "cache": "localhost:6379"
   },
-  "services": {
-    "trackerGgScraper": "http://localhost:3010"
+  "flareSolverr": {
+    "url": "http://localhost:8191",
+    "sessionMaxAgeSeconds": 7200
   },
   "ttl": {
     "commands": 600,

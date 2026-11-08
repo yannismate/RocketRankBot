@@ -6,14 +6,17 @@ import (
 	"RocketRankBot/services/commander/internal/db"
 	"RocketRankBot/services/commander/internal/metrics"
 	"RocketRankBot/services/commander/internal/server"
+	"RocketRankBot/services/commander/internal/tracker"
 	"RocketRankBot/services/commander/internal/twitch"
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
 	"context"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/twitchtv/twirp"
-	"net/http"
-	"strconv"
 )
 
 func main() {
@@ -39,19 +42,22 @@ func main() {
 		return mainDB.IsConnected() && cacheDB.IsConnected()
 	})
 
-	trackerGgScraper := trackerggscraper.NewTrackerGgScraperProtobufClient(cfg.Services.TrackerGgScraper, http.DefaultClient)
+	ctx, cancel := signal.NotifyContext(newRootContext(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	ranks := tracker.New(ctx, cfg.FlareSolverr.URL, time.Duration(cfg.FlareSolverr.SessionMaxAgeSeconds)*time.Second)
+	defer ranks.Close()
 	twitchAPI := twitch.NewAPI(cfg, cacheDB)
 
-	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchAPI, trackerGgScraper)
+	botInstance := bot.NewBot(mainDB, cacheDB, cfg, twitchAPI, ranks)
 
 	serverInstance := server.NewServer(cfg, twitchAPI, mainDB, cacheDB, botInstance)
-	err = serverInstance.Start(newRootContext())
+	err = serverInstance.Start(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not start server instance!")
+		log.Error().Err(err).Msg("Could not start server instance!")
 		return
 	}
 
-	select {}
+	<-ctx.Done()
 }
 
 func newRootContext() context.Context {
@@ -64,14 +70,6 @@ func newRootContext() context.Context {
 
 	ctxLogger := log.With().Str("trace-id", traceId).Str("span-id", spanId).Logger()
 	ctx = ctxLogger.WithContext(ctx)
-
-	outgoingHeaders := make(http.Header)
-	outgoingHeaders.Set("trace-id", traceId)
-	outgoingHeaders.Set("span-id", spanId)
-	ctx, err := twirp.WithHTTPRequestHeaders(ctx, outgoingHeaders)
-	if err != nil {
-		ctxLogger.Panic().Err(err)
-	}
 
 	return ctx
 }

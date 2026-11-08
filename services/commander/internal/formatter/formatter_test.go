@@ -1,15 +1,15 @@
 package formatter
 
 import (
-	"RocketRankBot/services/commander/rpc/trackerggscraper"
+	"RocketRankBot/services/commander/internal/tracker"
 	"testing"
 )
 
 func TestFormatRankStringWithTwoCharacterPlaylistAbbreviation(t *testing.T) {
-	rankData := &trackerggscraper.PlayerCurrentRanksRes{
-		Ranks: []*trackerggscraper.PlayerRank{
+	rankData := &tracker.Ranks{
+		Ranks: []*tracker.PlayerRank{
 			{
-				Playlist: trackerggscraper.RankPlaylist_HEATSEEKER,
+				Playlist: tracker.Heatseeker,
 				Mmr:      1350,
 				Rank:     13,
 				Division: 2,
@@ -25,10 +25,10 @@ func TestFormatRankStringWithTwoCharacterPlaylistAbbreviation(t *testing.T) {
 }
 
 func TestFormatRankStringWithSingleCharacterPlaylistAbbreviation(t *testing.T) {
-	rankData := &trackerggscraper.PlayerCurrentRanksRes{
-		Ranks: []*trackerggscraper.PlayerRank{
+	rankData := &tracker.Ranks{
+		Ranks: []*tracker.PlayerRank{
 			{
-				Playlist: trackerggscraper.RankPlaylist_RANKED_2V2,
+				Playlist: tracker.Ranked2v2,
 				Mmr:      1200,
 			},
 		},
@@ -42,7 +42,7 @@ func TestFormatRankStringWithSingleCharacterPlaylistAbbreviation(t *testing.T) {
 }
 
 func TestFormatRankStringLeavesUnknownPlaylistAbbreviationUnchanged(t *testing.T) {
-	got := FormatRankString(&trackerggscraper.PlayerCurrentRanksRes{}, "$(z.m)")
+	got := FormatRankString(&tracker.Ranks{}, "$(z.m)")
 	want := "$(z.m)"
 	if got != want {
 		t.Fatalf("FormatRankString() = %q, want %q", got, want)
@@ -50,7 +50,7 @@ func TestFormatRankStringLeavesUnknownPlaylistAbbreviationUnchanged(t *testing.T
 }
 
 func TestFormatRankStringLeavesUnknownTwoChararacterPlaylistAbbreviationUnchanged(t *testing.T) {
-	got := FormatRankString(&trackerggscraper.PlayerCurrentRanksRes{}, "$(zz.m)")
+	got := FormatRankString(&tracker.Ranks{}, "$(zz.m)")
 	want := "$(zz.m)"
 	if got != want {
 		t.Fatalf("FormatRankString() = %q, want %q", got, want)
