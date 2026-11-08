@@ -91,7 +91,7 @@ func TestRankTimeoutLeavesReplyTime(t *testing.T) {
 	instance := &bot{tracker: client, cacheDB: &rankCache{}}
 	ctx, cancel := context.WithTimeout(context.Background(), 2200*time.Millisecond)
 	defer cancel()
-	if got := instance.getRankMessage(ctx, db.RLPlatformEpic, "player", "$(name)"); got != messageRanksUnavailable {
+	if got := instance.getRankMessage(ctx, db.RLPlatformEpic, "player", "$(name)"); got != messageRateLimited {
 		t.Fatalf("message = %q", got)
 	}
 	deadline, _ := ctx.Deadline()

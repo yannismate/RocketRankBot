@@ -188,6 +188,37 @@ func TestWardenRecovery(t *testing.T) {
 	}
 }
 
+func TestWardenFallsBackToOtherReadySession(t *testing.T) {
+	var apiCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+		var request struct{ Cmd, Session string }
+		json.NewDecoder(req.Body).Decode(&request)
+		body := profile
+		if request.Cmd == "request.get" {
+			apiCalls.Add(1)
+			if request.Session == "challenged" {
+				body = `{"errors":[{"code":"Warden::Challenge","message":"Solve captcha"}]}`
+			}
+		}
+		json.NewEncoder(writer).Encode(map[string]any{"status": "ok", "solution": map[string]any{"status": 200, "response": body}})
+	}))
+	defer server.Close()
+	client := &Client{endpoint: server.URL, http: server.Client(), maxAge: time.Hour, sessions: make(chan *session, 2), wake: make(chan struct{}, 1), done: make(chan struct{})}
+	challenged := &session{id: "challenged", created: time.Now()}
+	client.sessions <- challenged
+	client.sessions <- &session{id: "ready", created: time.Now()}
+	defer client.destroyAll()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	ranks, err := client.GetRanks(ctx, "epic", "player")
+	if err != nil || ranks == nil || apiCalls.Load() != 2 {
+		t.Fatalf("did not fail over to ready session: ranks=%+v, calls=%d, error=%v", ranks, apiCalls.Load(), err)
+	}
+	if challenged.recoveryURL == "" || challenged.failures != 1 {
+		t.Fatalf("challenged session was not quarantined: %+v", challenged)
+	}
+}
+
 func TestRotationThresholds(t *testing.T) {
 	client := &Client{maxAge: 2 * time.Hour}
 	for _, check := range []struct {
@@ -308,18 +339,17 @@ func TestRequestRotation(t *testing.T) {
 }
 
 func TestFailedPrewarm(t *testing.T) {
-	created, destroyed := 0, 0
+	var created, destroyed atomic.Int32
 	var recovered atomic.Bool
 	failed := make(chan struct{}, 1)
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
-		var request struct{ Cmd, URL string }
+		var request struct{ Cmd, Session, URL string }
 		json.NewDecoder(req.Body).Decode(&request)
 		switch request.Cmd {
 		case "sessions.create":
-			created++
-			fmt.Fprintf(writer, `{"status":"ok","session":"id-%d"}`, created)
+			fmt.Fprintf(writer, `{"status":"ok","session":"id-%d"}`, created.Add(1))
 		case "sessions.destroy":
-			destroyed++
+			destroyed.Add(1)
 			fmt.Fprint(writer, `{"status":"ok"}`)
 			if !recovered.Load() {
 				select {
@@ -330,7 +360,7 @@ func TestFailedPrewarm(t *testing.T) {
 		case "request.get":
 			status := 200
 			body := profile
-			if request.URL == homeURL && created >= 2 && !recovered.Load() {
+			if request.URL == homeURL && request.Session != "id-1" && !recovered.Load() {
 				status = 403
 			}
 			json.NewEncoder(writer).Encode(map[string]any{"status": "ok", "solution": map[string]any{"status": status, "response": body}})
@@ -483,6 +513,40 @@ func TestBlockedPrewarm(t *testing.T) {
 		}
 	case <-time.After(300 * time.Millisecond):
 		t.Fatal("rank lookup waited for prewarm")
+	}
+}
+
+func TestMaintenanceDoesNotBlockOtherSession(t *testing.T) {
+	started := make(chan struct{}, 1)
+	var created atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+		var request struct{ Cmd, Session string }
+		json.NewDecoder(req.Body).Decode(&request)
+		switch request.Cmd {
+		case "sessions.create":
+			fmt.Fprintf(writer, `{"status":"ok","session":"id-%d"}`, created.Add(1))
+		case "request.get":
+			if request.Session == "id-1" {
+				started <- struct{}{}
+				<-req.Context().Done()
+				return
+			}
+			json.NewEncoder(writer).Encode(map[string]any{"status": "ok", "solution": map[string]any{"status": 200, "response": profile}})
+		case "sessions.destroy":
+			fmt.Fprint(writer, `{"status":"ok"}`)
+		}
+	}))
+	defer server.Close()
+	client := New(context.Background(), server.URL, time.Hour)
+	defer client.Close()
+	select {
+	case <-started:
+	case <-time.After(3 * time.Second):
+		t.Fatal("blocked session did not start prewarming")
+	}
+	waitForSessions(t, client, 1, 3*time.Second)
+	if _, err := client.GetRanks(context.Background(), "epic", "player"); err != nil {
+		t.Fatalf("blocked maintenance prevented the other session from serving ranks: %v", err)
 	}
 }
 

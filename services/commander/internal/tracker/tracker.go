@@ -247,7 +247,11 @@ func (client *Client) recover(ctx context.Context, current *session) error {
 }
 
 func (client *Client) maintain(ctx context.Context) {
-	defer close(client.done)
+	var workers sync.WaitGroup
+	defer func() {
+		workers.Wait()
+		close(client.done)
+	}()
 	ticker := time.NewTicker(maintenanceInterval)
 	defer ticker.Stop()
 	for {
@@ -260,16 +264,22 @@ func (client *Client) maintain(ctx context.Context) {
 		for remaining := len(client.sessions); remaining > 0; remaining-- {
 			select {
 			case current := <-client.sessions:
-				if client.expired(current) {
-					if err := client.replace(ctx, current); err != nil && ctx.Err() == nil {
-						log.Ctx(ctx).Error().Err(err).Msg("Could not replace FlareSolverr session")
-					}
-				} else if current.recoveryURL != "" {
-					if err := client.recover(ctx, current); err != nil && ctx.Err() == nil {
+				if !client.expired(current) && current.recoveryURL == "" {
+					client.sessions <- current
+					continue
+				}
+				workers.Add(1)
+				go func(current *session) {
+					defer workers.Done()
+					defer func() { client.sessions <- current }()
+					if client.expired(current) {
+						if err := client.replace(ctx, current); err != nil && ctx.Err() == nil {
+							log.Ctx(ctx).Error().Err(err).Msg("Could not replace FlareSolverr session")
+						}
+					} else if err := client.recover(ctx, current); err != nil && ctx.Err() == nil {
 						log.Ctx(ctx).Error().Err(err).Msg("Could not recover FlareSolverr session")
 					}
-				}
-				client.sessions <- current
+				}(current)
 			default:
 			}
 		}
@@ -296,6 +306,21 @@ func (client *Client) GetRanks(ctx context.Context, platform, identifier string)
 	case "xbox":
 		platform = "xbl"
 	}
+	var challenge error
+	for attempt := 0; attempt < sessionCount; attempt++ {
+		ranks, err = client.getRanksAttempt(ctx, platform, identifier)
+		if err == ErrUnavailable && challenge != nil {
+			return nil, challenge
+		}
+		if !errors.Is(err, ErrChallenge) || ctx.Err() != nil {
+			return ranks, err
+		}
+		challenge = err
+	}
+	return ranks, err
+}
+
+func (client *Client) getRanksAttempt(ctx context.Context, platform, identifier string) (*Ranks, error) {
 	var current *session
 	for remaining := len(client.sessions); remaining > 0; remaining-- {
 		select {
@@ -332,6 +357,7 @@ func (client *Client) GetRanks(ctx context.Context, platform, identifier string)
 	current.requests++
 	target := profileURL + url.PathEscape(platform) + "/" + url.PathEscape(identifier)
 	page, err := client.get(ctx, current.id, target)
+	var ranks *Ranks
 	if err == nil {
 		ranks, err = ranksFromPage(page)
 	}
